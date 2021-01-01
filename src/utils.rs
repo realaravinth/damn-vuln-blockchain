@@ -14,7 +14,6 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
 use data_encoding::HEXUPPER;
 use sha2::{Digest, Sha256};
 
@@ -41,3 +40,14 @@ pub fn get_rand_string(len: usize) -> String {
         .take(len)
         .collect()
 }
+
+/// helper function to get current timesamp
+pub fn get_current_time() -> String {
+    use chrono::prelude::*;
+    Local::now().to_string()
+}
+
+///// helper function to get time as string since UNIX_EPOCH
+//pub fn timesamp_to_string(timestamp: Timestamp) -> String {
+//    unimplemented!()
+//}

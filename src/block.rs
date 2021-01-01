@@ -76,7 +76,8 @@ impl BlockBuilder {
 
     /// Build block, this method must be called at the very end
     pub fn build(&mut self) -> Block {
-        use crate::utils::hasher;
+        use crate::utils::*;
+
         if self.prev.is_empty()
             || self.rx.is_empty()
             || self.tx.is_empty()
@@ -90,6 +91,7 @@ impl BlockBuilder {
                 tx: Some(self.tx.to_owned()),
                 rx: Some(self.rx.to_owned()),
                 hash,
+                timesamp: get_current_time(),
             }
         }
     }
@@ -101,6 +103,7 @@ pub struct Block {
     hash: String,
     tx: Option<String>,
     rx: Option<String>,
+    timesamp: String,
 }
 
 impl Display for Block {
@@ -119,7 +122,7 @@ impl Display for Block {
 impl Block {
     /// First block of a blockchain
     pub fn genesis() -> Self {
-        use crate::utils::{get_rand_string, hasher};
+        use crate::utils::*;
 
         let hash = hasher(&get_rand_string(10));
         Block {
@@ -127,6 +130,7 @@ impl Block {
             tx: None,
             rx: None,
             hash,
+            timesamp: get_current_time(),
         }
     }
 
