@@ -79,4 +79,4 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages
-          FOLDER: damn_vuln_blockchain/index.html
+          FOLDER: target/doc/damn_vuln_blockchain
