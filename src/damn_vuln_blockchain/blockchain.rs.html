@@ -274,32 +274,6 @@
 <span id="271">271</span>
 <span id="272">272</span>
 <span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -323,32 +297,6 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">asset</span>::<span class="ident">Asset</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="kw-2">*</span>;
-
-<span class="doccomment">/// Builder struct to create blocks</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use damn_vuln_blockchain::{ asset::AssetLedger, blockchain::{BlockBuilder, Chain, Block}};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///        let chain = Chain::new(&quot;My chain&quot;); // crate cahin</span>
-<span class="doccomment">///        let mut assets = AssetLedger::generate(); // generate some assets</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///        let asset = assets.assets.pop().unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///        // get the last block of a chain</span>
-<span class="doccomment">///        let prev = chain.get_last_block();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///        let block = BlockBuilder::default()</span>
-<span class="doccomment">///            .set_tx(&quot;Me&quot;)</span>
-<span class="doccomment">///            .set_rx(&quot;You&quot;)</span>
-<span class="doccomment">///            .set_prev(&amp;prev)</span>
-<span class="doccomment">///            .set_asset_id(&amp;asset)</span>
-<span class="doccomment">///            .set_validator(&quot;Me&quot;)</span>
-<span class="doccomment">///            .build();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///        assert!(!block.is_genesis());</span>
-<span class="doccomment">///        assert_eq!(block.get_tx().unwrap(), &quot;Me&quot;);</span>
-<span class="doccomment">///        assert_eq!(block.get_rx().unwrap(), &quot;You&quot;);</span>
-<span class="doccomment">/// }</span>
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BlockBuilder</span> {
