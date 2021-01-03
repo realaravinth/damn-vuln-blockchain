@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Block","Block. `tx`, `prev`, validator and `rx` are `Option<_>` to accomodate genesis block. Blockchain implementors must check for the existence of genesis block before appending the block to the ledger"],["BlockBuilder","Builder struct to create blocks"],["Chain",""]]});
