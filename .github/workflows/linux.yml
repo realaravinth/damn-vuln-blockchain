@@ -44,6 +44,22 @@ jobs:
           command: check
           args: --all --bins --examples --tests
 
+      - name: Upload documentation
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --no-deps --workspace --all-features
+
+          #      - name: Tweak HTML
+          #        run: echo "<meta http-equiv=refresh content=0;url=os_balloon/index.html>" > target/doc/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: damn_vuln_blockchain/index.html
+
       - name: tests
         uses: actions-rs/cargo@v1
         timeout-minutes: 40
