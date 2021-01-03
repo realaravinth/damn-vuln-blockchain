@@ -15,6 +15,47 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+//! This is a test blockchain that I build for fun and as the name
+//! suggests, **it is bloody vulnerable.**
+//!
+//! This library serves as its building block.
+//!
+//! ## Create a new blockchain
+//! ```rust
+//! use damn_vuln_blockchain::{ asset::AssetLedger, blockchain::{BlockBuilder, Chain, Block}};
+//!
+//! fn main() {
+//!        let chain = Chain::new("My chain"); // crate cahin
+//!   }
+//! ```
+//!
+//! ## Create a block
+//! ```rust
+//! use damn_vuln_blockchain::{ asset::AssetLedger, blockchain::{BlockBuilder, Chain, Block}};
+//!
+//! fn main() {
+//!        let chain = Chain::new("My chain"); // create blockchain
+//!        let mut assets = AssetLedger::generate(); // generate some assets
+//!
+//!        let asset = assets.assets.pop().unwrap();
+//!
+//!        // get the last block of a chain
+//!        let prev = chain.get_last_block();
+//!
+//!        let block = BlockBuilder::default()
+//!            .set_tx("Me")
+//!            .set_rx("You")
+//!            .set_prev(&prev)
+//!            .set_asset_id(&asset)
+//!            .set_validator("Me")
+//!            .build();
+//!
+//!        assert!(!block.is_genesis());
+//!        assert_eq!(block.get_tx().unwrap(), "Me");
+//!        assert_eq!(block.get_rx().unwrap(), "You");
+//! }
+//! ```
+
 pub mod asset;
 pub mod blockchain;
 pub mod error;

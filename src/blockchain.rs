@@ -21,32 +21,6 @@ use serde::{Deserialize, Serialize};
 use crate::asset::Asset;
 use crate::error::*;
 
-/// Builder struct to create blocks
-/// ```rust
-/// use damn_vuln_blockchain::{ asset::AssetLedger, blockchain::{BlockBuilder, Chain, Block}};
-///
-/// fn main() {
-///        let chain = Chain::new("My chain"); // crate cahin
-///        let mut assets = AssetLedger::generate(); // generate some assets
-///
-///        let asset = assets.assets.pop().unwrap();
-///
-///        // get the last block of a chain
-///        let prev = chain.get_last_block();
-///
-///        let block = BlockBuilder::default()
-///            .set_tx("Me")
-///            .set_rx("You")
-///            .set_prev(&prev)
-///            .set_asset_id(&asset)
-///            .set_validator("Me")
-///            .build();
-///
-///        assert!(!block.is_genesis());
-///        assert_eq!(block.get_tx().unwrap(), "Me");
-///        assert_eq!(block.get_rx().unwrap(), "You");
-/// }
-
 #[derive(Deserialize, Serialize, Clone, Debug, Default)]
 pub struct BlockBuilder {
     /// previous block's hash
