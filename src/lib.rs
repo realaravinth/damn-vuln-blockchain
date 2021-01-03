@@ -16,6 +16,7 @@
 */
 
 pub mod asset;
-pub mod block;
-//mod chain;
+pub mod blockchain;
+pub mod error;
+pub mod logs;
 pub mod utils;
