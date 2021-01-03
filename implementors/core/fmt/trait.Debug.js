@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["damn_vuln_blockchain"] = [{"text":"impl Debug for Asset","synthetic":false,"types":[]},{"text":"impl Debug for AssetLedger","synthetic":false,"types":[]},{"text":"impl Debug for BlockBuilder","synthetic":false,"types":[]},{"text":"impl Debug for Block","synthetic":false,"types":[]},{"text":"impl Debug for Chain","synthetic":false,"types":[]},{"text":"impl Debug for ChainError","synthetic":false,"types":[]},{"text":"impl Debug for Peer","synthetic":false,"types":[]},{"text":"impl Debug for Gossip","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
