@@ -15,6 +15,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use actix::prelude::*;
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
@@ -228,6 +229,9 @@ impl Chain {
     pub fn add_block(&mut self, block: Block) -> ChainResult<()> {
         if block.is_genesis() {
             return Err(ChainError::GenesisBlockAdditionError);
+        // unwrap() is fine below because `block` is not genesis
+        } else if block.get_prev().unwrap() != self.get_last_block().get_hash() {
+            return Err(ChainError::InconsistentBlockAdition);
         } else {
             self.blocks.push(block);
         }
@@ -236,8 +240,8 @@ impl Chain {
 
     /// checks if a blockchain is valid by comparing the hash of the previous
     /// element with the block.prev of the next element in the blockchain
-    pub fn is_valid(&self) -> ChainResult<()> {
-        let mut iter = self.blocks.iter().peekable();
+    pub fn is_valid(chain: &Vec<Block>) -> ChainResult<()> {
+        let mut iter = chain.iter().peekable();
         loop {
             if let Some(val) = iter.next() {
                 if let Some(next) = iter.peek() {
@@ -252,6 +256,55 @@ impl Chain {
             }
         }
         Ok(())
+    }
+
+    pub fn replace_chain(&mut self, chain: Vec<Block>) -> ChainResult<()> {
+        Chain::is_valid(&chain)?;
+        self.blocks = chain;
+        Ok(())
+    }
+}
+
+impl Actor for Chain {
+    type Context = Context<Self>;
+}
+
+/// Add Block
+#[derive(Message)]
+#[rtype(result = "ChainResult<()>")]
+pub struct AddBlock(Block);
+
+/// Get last block
+#[derive(Message)]
+#[rtype(result = "Block")]
+pub struct GetLastBlock;
+
+/// Replace Chain
+#[derive(Message)]
+#[rtype(result = "ChainResult<()>")]
+pub struct ReplaceChain(Vec<Block>);
+
+impl Handler<AddBlock> for Chain {
+    type Result = MessageResult<AddBlock>;
+
+    fn handle(&mut self, msg: AddBlock, _ctx: &mut Self::Context) -> Self::Result {
+        MessageResult(self.add_block(msg.0))
+    }
+}
+
+impl Handler<GetLastBlock> for Chain {
+    type Result = MessageResult<GetLastBlock>;
+
+    fn handle(&mut self, _msg: GetLastBlock, _ctx: &mut Self::Context) -> Self::Result {
+        MessageResult(self.get_last_block().to_owned())
+    }
+}
+
+impl Handler<ReplaceChain> for Chain {
+    type Result = MessageResult<ReplaceChain>;
+
+    fn handle(&mut self, msg: ReplaceChain, _ctx: &mut Self::Context) -> Self::Result {
+        MessageResult(self.replace_chain(msg.0))
     }
 }
 
@@ -333,6 +386,7 @@ mod tests {
             Err(ChainError::GenesisBlockAdditionError),
             "Genesis Block addition prevented"
         );
+
         chain.add_block(block.clone()).unwrap();
         assert_eq!(
             chain.get_last_block().hash(),
@@ -340,12 +394,131 @@ mod tests {
             "add_block works"
         );
 
-        chain.is_valid().unwrap();
-        chain.add_block(block).unwrap();
         assert_eq!(
-            chain.is_valid(),
-            Err(ChainError::InvalidBlockChain),
+            chain.add_block(block),
+            Err(ChainError::InconsistentBlockAdition),
             "Chain Invalid Prevention works"
+        );
+    }
+
+    #[actix_rt::test]
+    async fn chain_actor_works() {
+        use crate::asset::AssetLedger;
+
+        let chain_addr = Chain::new("test chain").start();
+
+        let prev = chain_addr.send(GetLastBlock).await.unwrap();
+
+        let mut assets = AssetLedger::generate();
+        let asset = assets.assets.pop().unwrap();
+
+        let block = BlockBuilder::default()
+            .set_tx("Me")
+            .set_rx("You")
+            .set_prev(&prev)
+            .set_asset_id(&asset)
+            .build();
+
+        assert_eq!(
+            chain_addr.send(AddBlock(Block::genesis())).await.unwrap(),
+            Err(ChainError::GenesisBlockAdditionError),
+            "Genesis Block addition prevented"
+        );
+
+        chain_addr
+            .send(AddBlock(block.clone()))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            chain_addr.send(GetLastBlock).await.unwrap().hash(),
+            block.hash(),
+            "add_block works"
+        );
+
+        assert_eq!(
+            chain_addr.send(AddBlock(block.clone())).await.unwrap(),
+            Err(ChainError::InconsistentBlockAdition),
+            "Chain Invalid Prevention works"
+        );
+    }
+
+    #[actix_rt::test]
+    async fn chain_replace_works() {
+        use crate::asset::AssetLedger;
+
+        // create parallel_chain to get genesis hash
+        let parallel_chain = Chain::new("test chain");
+
+        let prev = parallel_chain.get_last_block();
+
+        let mut assets = AssetLedger::generate();
+        let asset = assets.assets.pop().unwrap();
+
+        let block = BlockBuilder::default()
+            .set_tx("Me")
+            .set_rx("You")
+            .set_prev(&prev)
+            .set_asset_id(&asset)
+            .build();
+
+        //        let main_last_block_hash = chain_addr.send(GetLastBlock).await.unwrap().get_hash();
+        // get parallel_chain's hash
+        let parallel_last_block_hash = block.get_hash();
+
+        // craete invalid block chain
+        let chain_invalid = vec![block.clone(), block.clone()];
+        assert_eq!(
+            Chain::is_valid(&chain_invalid),
+            Err(ChainError::InvalidBlockChain),
+            "Invalid Blockchain test"
+        );
+
+        // create valid blockchain
+        let parallel_chain_valid = vec![prev.clone(), block.clone()];
+
+        // create chain that needs to be replaced
+        let chain_addr = Chain::new("test chain").start();
+
+        // get previous block to add new block
+        let prev = chain_addr.send(GetLastBlock).await.unwrap();
+
+        let mut assets = AssetLedger::generate();
+        let asset = assets.assets.pop().unwrap();
+
+        let new_block = BlockBuilder::default()
+            .set_tx("Me")
+            .set_rx("You")
+            .set_prev(&prev)
+            .set_asset_id(&asset)
+            .build();
+
+        // add new block
+        chain_addr
+            .send(AddBlock(new_block.clone()))
+            .await
+            .unwrap()
+            .unwrap();
+
+        // attempt replace
+        chain_addr
+            .send(ReplaceChain(parallel_chain_valid))
+            .await
+            .unwrap()
+            .unwrap();
+
+        // check if it's been replaced
+        assert_eq!(
+            chain_addr.send(GetLastBlock).await.unwrap().get_hash(),
+            parallel_last_block_hash,
+            "Chain Replaced"
+        );
+
+        // attempt replace with invalid blockchain
+        assert_eq!(
+            chain_addr.send(ReplaceChain(chain_invalid)).await.unwrap(),
+            Err(ChainError::InvalidBlockChain),
+            "Invalild blockchain replace test"
         );
     }
 }

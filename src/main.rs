@@ -17,6 +17,8 @@
 use actix::prelude::*;
 
 use damn_vuln_blockchain::asset::AssetLedger;
+use damn_vuln_blockchain::blockchain::Chain;
+
 mod routes;
 #[derive(Clone)]
 struct Config {
@@ -24,7 +26,8 @@ struct Config {
     pub peer_id: String,
     pub port: usize,
     pub asset_addr: Addr<AssetLedger>,
-    pub tampered_asset_addr: Option<Addr<AssetLedger>>,
+    pub chain_addr: Addr<Chain>,
+    pub tampered_chain_addr: Option<Addr<Chain>>,
 }
 
 #[derive(Clone)]
@@ -113,7 +116,8 @@ fn cli() -> Config {
 
     let mode;
     let mut asset_leger = AssetLedger::default();
-    let mut tampered_asset_addr = None;
+    let chain_addr = Chain::new("Legit").start();
+    let tampered_chain_addr = None;
 
     match matches
         .value_of("mode")
@@ -130,7 +134,7 @@ fn cli() -> Config {
 
         "attacker" => {
             mode = Mode::Attacker;
-            tampered_asset_addr = Some(AssetLedger::default().start());
+            //           tampered_asset_addr = Some(AssetLedger::default().start());
         }
         _ => panic!("Enter valid peer mode"),
     };
@@ -141,7 +145,9 @@ fn cli() -> Config {
         peer_id: peer_id.into(),
         port,
         mode,
-        tampered_asset_addr,
+        //       tampered_asset_addr,
         asset_addr: asset_leger.start(),
+        tampered_chain_addr,
+        chain_addr,
     }
 }

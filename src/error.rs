@@ -12,8 +12,12 @@ pub enum ChainError {
     #[display(fmt = "Block passed is a genesis block. Can't add second Genesis block")]
     GenesisBlockAdditionError,
     /// Blockchain invalid when block.hash() != block.next().prev
+    /// Occours when entire blockchain's validity is checked
     #[display(fmt = "Invalid blockchain, looks like it's been tampered!")]
     InvalidBlockChain,
+    /// Block inconsistent, block.hash() != chain.get_last_block*().get_hash()
+    #[display(fmt = "Block can't be added, previous hash and block data don't match")]
+    InconsistentBlockAdition,
 }
 
 pub type ChainResult<V> = std::result::Result<V, ChainError>;
