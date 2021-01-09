@@ -37,6 +37,10 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// use std::convert::From;</span>
 
@@ -52,8 +56,12 @@
     <span class="attribute">#[<span class="ident">display</span>(<span class="ident">fmt</span> <span class="op">=</span> <span class="string">&quot;Block passed is a genesis block. Can&#39;t add second Genesis block&quot;</span>)]</span>
     <span class="ident">GenesisBlockAdditionError</span>,
     <span class="doccomment">/// Blockchain invalid when block.hash() != block.next().prev</span>
+    <span class="doccomment">/// Occours when entire blockchain&#39;s validity is checked</span>
     <span class="attribute">#[<span class="ident">display</span>(<span class="ident">fmt</span> <span class="op">=</span> <span class="string">&quot;Invalid blockchain, looks like it&#39;s been tampered!&quot;</span>)]</span>
     <span class="ident">InvalidBlockChain</span>,
+    <span class="doccomment">/// Block inconsistent, block.hash() != chain.get_last_block*().get_hash()</span>
+    <span class="attribute">#[<span class="ident">display</span>(<span class="ident">fmt</span> <span class="op">=</span> <span class="string">&quot;Block can&#39;t be added, previous hash and block data don&#39;t match&quot;</span>)]</span>
+    <span class="ident">InconsistentBlockAdition</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ChainResult</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">ChainError</span><span class="op">&gt;</span>;
