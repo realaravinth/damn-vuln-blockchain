@@ -28,6 +28,7 @@ pub struct Asset {
 }
 
 impl Display for Asset {
+    #[cfg(not(tarpaulin_include))]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let owner = if let Some(val) = self.get_owner() {
             val

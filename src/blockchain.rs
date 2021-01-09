@@ -66,10 +66,14 @@ impl BlockBuilder {
         self
     }
 
+    fn hash(&self) -> String {
+        use crate::utils::*;
+        hasher(&format!("{}{}{}", self.prev, self.rx, self.tx))
+    }
+
     /// Build block, this method must be called at the very end
     pub fn build(&mut self) -> Block {
         use crate::utils::*;
-
         if self.prev.is_empty()
             || self.rx.is_empty()
             || self.tx.is_empty()
@@ -77,7 +81,7 @@ impl BlockBuilder {
         {
             panic!("Can't create block, one or more fields are empty");
         } else {
-            let hash = hasher(&format!("{}{}{}", self.prev, self.rx, self.tx));
+            let hash = self.hash();
             Block {
                 prev: Some(self.prev.to_owned()),
                 tx: Some(self.tx.to_owned()),
@@ -107,6 +111,7 @@ pub struct Block {
 
 impl Block {
     /// Get block info as string
+    #[cfg(not(tarpaulin_include))]
     pub fn to_string(&self) -> String {
         if self.is_genesis() {
             format!("Genesis block \nHash: {}", self.get_hash())
@@ -122,6 +127,7 @@ impl Block {
         }
     }
 
+    /// checks if the block is a genesis block
     pub fn is_genesis(&self) -> bool {
         if self.prev.is_none() || self.tx.is_none() || self.tx.is_none() || self.rx.is_none() {
             return true;
@@ -141,6 +147,24 @@ impl Block {
             hash,
             timesamp: get_current_time(),
             validator: None,
+        }
+    }
+
+    /// computes the hash of a block, uses the same logic
+    /// for genesis blocks, it simply returns the hash stored
+    /// in the block as genesis() computes hash over random
+    /// strings
+    pub fn hash(&self) -> String {
+        use crate::utils::*;
+        if self.is_genesis() {
+            return self.get_hash().into();
+        } else {
+            hasher(&format!(
+                "{}{}{}",
+                self.prev.as_ref().unwrap(),
+                self.rx.as_ref().unwrap(),
+                self.tx.as_ref().unwrap()
+            ))
         }
     }
 
@@ -204,6 +228,28 @@ impl Chain {
     pub fn add_block(&mut self, block: Block) -> ChainResult<()> {
         if block.is_genesis() {
             return Err(ChainError::GenesisBlockAdditionError);
+        } else {
+            self.blocks.push(block);
+        }
+        Ok(())
+    }
+
+    /// checks if a blockchain is valid by comparing the hash of the previous
+    /// element with the block.prev of the next element in the blockchain
+    pub fn is_valid(&self) -> ChainResult<()> {
+        let mut iter = self.blocks.iter().peekable();
+        loop {
+            if let Some(val) = iter.next() {
+                if let Some(next) = iter.peek() {
+                    if &val.hash() != next.get_prev().unwrap() {
+                        //unwrap is okay
+                        // here as we'll only be passing non-genesis blocks
+                        return Err(ChainError::InvalidBlockChain);
+                    }
+                }
+            } else {
+                break;
+            }
         }
         Ok(())
     }
@@ -214,24 +260,14 @@ mod tests {
 
     use super::*;
 
-    pub fn genesis() -> Block {
-        use crate::utils::*;
-
-        let hash = hasher(&get_rand_string(10));
-        Block {
-            prev: None,
-            tx: None,
-            rx: None,
-            hash,
-            timesamp: get_current_time(),
-            validator: None,
-        }
-    }
     #[test]
     fn block_works() {
         use crate::asset::AssetLedger;
 
-        let prev = genesis();
+        let prev = Block::genesis();
+        assert_eq!(prev.is_genesis(), true, "Genesis block identified");
+
+        assert_eq!(prev.hash(), prev.hash, "Genesis block hash works");
         let mut assets = AssetLedger::generate();
         let asset = assets.assets.pop().unwrap();
 
@@ -241,14 +277,17 @@ mod tests {
             .set_prev(&prev)
             .set_asset_id(&asset)
             .build();
+
+        assert_eq!(block.is_genesis(), false, "non-genesis block identified");
         assert_eq!(block.get_tx().unwrap(), "Me");
         assert_eq!(block.get_rx().unwrap(), "You");
+        assert_eq!(block.hash(), block.hash, "non-genesis block hash works");
     }
 
     #[test]
     #[should_panic]
     fn block_panic_works() {
-        let prev = genesis();
+        let prev = Block::genesis();
 
         let _ = BlockBuilder::default()
             .set_rx("You")
@@ -260,7 +299,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn block_panic2_works() {
-        let prev = genesis();
+        let prev = Block::genesis();
 
         let _ = BlockBuilder::default().set_prev(&prev).build();
     }
@@ -269,5 +308,44 @@ mod tests {
     #[should_panic]
     fn block_panic3_works() {
         let _ = BlockBuilder::default().build();
+    }
+
+    #[test]
+    fn chain_works() {
+        use crate::asset::AssetLedger;
+
+        let mut chain = Chain::new("test chain");
+
+        let prev = chain.get_last_block();
+
+        let mut assets = AssetLedger::generate();
+        let asset = assets.assets.pop().unwrap();
+
+        let block = BlockBuilder::default()
+            .set_tx("Me")
+            .set_rx("You")
+            .set_prev(&prev)
+            .set_asset_id(&asset)
+            .build();
+
+        assert_eq!(
+            chain.add_block(Block::genesis()),
+            Err(ChainError::GenesisBlockAdditionError),
+            "Genesis Block addition prevented"
+        );
+        chain.add_block(block.clone()).unwrap();
+        assert_eq!(
+            chain.get_last_block().hash(),
+            block.hash(),
+            "add_block works"
+        );
+
+        chain.is_valid().unwrap();
+        chain.add_block(block).unwrap();
+        assert_eq!(
+            chain.is_valid(),
+            Err(ChainError::InvalidBlockChain),
+            "Chain Invalid Prevention works"
+        );
     }
 }

@@ -4,10 +4,10 @@
 # Damn Vulnerable Blockchain
 
 ![CI (Linux)](<https://github.com/realaravinth/damn-vuln-blockchain/workflows/CI%20(Linux)/badge.svg>)
-[![codecov](https://codecov.io/gh/realaravinth/damn-vuln-blockchain/branch/master/graph/badge.svg?token=4HjfPHCBEN)](https://codecov.io/gh/realaravinth/damn-vuln-blockchain)
+[![Documentation](https://img.shields.io/badge/Docs-master-blue)](https://realaravinth.github.io/damn-vuln-blockchain/damn_vuln_blockchain/index.html)
+[![codecov](https://codecov.io/gh/realaravinth/damn-vuln-blockchain/branch/master/graph/badge.svg?token=ZgkisU6TWX)](https://codecov.io/gh/realaravinth/damn-vuln-blockchain)
 [![AGPL License](https://img.shields.io/badge/license-AGPL-blue.svg)](http://www.gnu.org/licenses/agpl-3.0)
 [![dependency status](https://deps.rs/repo/github/realaravinth/damn-vuln-blockchain/status.svg)](https://deps.rs/repo/github/realaravinth/damn-vuln-blockchain)
-[![Documentation](https://img.shields.io/badge/Docs-master-blue)](https://realaravinth.github.io/damn-vuln-blockchain/damn_vuln_blockchain/index.html)
 
 </div>
 
