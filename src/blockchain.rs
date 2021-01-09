@@ -284,6 +284,13 @@ pub struct GetLastBlock;
 #[rtype(result = "ChainResult<()>")]
 pub struct ReplaceChain(Vec<Block>);
 
+/// Dumps entire ledger
+/// Useful when forking:
+/// send `DumpLedger` and send output with `ReplaceChain`
+#[derive(Message)]
+#[rtype(result = "Vec<Block>")]
+pub struct DumpLedger;
+
 impl Handler<AddBlock> for Chain {
     type Result = MessageResult<AddBlock>;
 
@@ -305,6 +312,14 @@ impl Handler<ReplaceChain> for Chain {
 
     fn handle(&mut self, msg: ReplaceChain, _ctx: &mut Self::Context) -> Self::Result {
         MessageResult(self.replace_chain(msg.0))
+    }
+}
+
+impl Handler<DumpLedger> for Chain {
+    type Result = MessageResult<DumpLedger>;
+
+    fn handle(&mut self, _msg: DumpLedger, _ctx: &mut Self::Context) -> Self::Result {
+        MessageResult(self.blocks.clone())
     }
 }
 
@@ -419,12 +434,14 @@ mod tests {
             .set_asset_id(&asset)
             .build();
 
+        // checks if genesis block can be appended to a blockchian
         assert_eq!(
             chain_addr.send(AddBlock(Block::genesis())).await.unwrap(),
             Err(ChainError::GenesisBlockAdditionError),
             "Genesis Block addition prevented"
         );
 
+        // checks if valid blocks can be added to blockchian
         chain_addr
             .send(AddBlock(block.clone()))
             .await
@@ -436,10 +453,21 @@ mod tests {
             "add_block works"
         );
 
+        // checks if invalid block, where block.get_prev() != chain.get_last_block().get_hash()
+        // can be added to chain
         assert_eq!(
             chain_addr.send(AddBlock(block.clone())).await.unwrap(),
             Err(ChainError::InconsistentBlockAdition),
             "Chain Invalid Prevention works"
+        );
+        let dump = chain_addr.send(DumpLedger).await.unwrap().pop().unwrap();
+
+        // checks if dump works by popping the last element of the dump and getting
+        // its hash and comparing it with the chain's last element's hash
+        assert_eq!(
+            chain_addr.send(GetLastBlock).await.unwrap().hash(),
+            dump.get_hash(),
+            "Dump works"
         );
     }
 
