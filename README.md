@@ -34,6 +34,56 @@ $ git clone https://github.com/realaravinth/damn-vuln-blockchain
 $ cd damn-vuln-blockchain && cargo build
 ```
 
+### Usage:
+
+`Damn Vulnerable Blockchain` comes with a peer implementation called
+`dwb`. `dwb` supports three modes:
+
+#### - Attacker:
+
+Configured to fork the blockchain and perform a double spend. See
+[attack scenario](#attack-scenario%3A).
+
+#### - Auditor:
+
+This is a special peer that acts as the discovery node and
+mint. It should be spawned first.
+
+#### - Victim:
+
+This peer will be configured to take itself down when an attack command
+is issued.
+
+
+#### `dwb` usage:
+
+```
+Damn Vulnerable Blockchain 0.1
+Aravinth Manivannan <realaravinth@batsense.net>
+A bloody vulnerable blockchain implementation
+
+USAGE:
+    dwb --discovery <discovery> --mode <mode> --id <peer_id> --port <port>
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -d, --discovery <discovery>    address of discovery node
+    -m, --mode <mode>              available modes:
+                                   	auditor
+                                   	attacker
+                                   	victim
+    -i, --id <peer_id>             set peer ID
+    -p, --port <port>              set port to listen on
+
+```
+
+### Attack Scenario:
+
+TODO
+
 ### Credits:
 
 Logo made by [Freepik](https://www.flaticon.com/authors/freepik) from

@@ -14,28 +14,58 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use actix::prelude::*;
 
+use damn_vuln_blockchain::asset::AssetLedger;
 mod routes;
-
 #[derive(Clone)]
 struct Config {
-    pub auditor: bool,
+    pub mode: Mode,
     pub peer_id: String,
     pub port: usize,
+    pub asset_addr: Addr<AssetLedger>,
+    pub tampered_asset_addr: Option<Addr<AssetLedger>>,
+}
+
+#[derive(Clone)]
+enum Mode {
+    Auditor,
+    Attacker,
+    Victim,
 }
 
 #[actix_web::main]
 #[cfg(not(tarpaulin_include))]
 async fn main() -> std::io::Result<()> {
-    use actix_web::{App, HttpServer};
-
+    use actix_web::{
+        middleware::{normalize, Compress, Logger, NormalizePath},
+        App, HttpServer,
+    };
+    pretty_env_logger::init();
     let config = cli();
     let ip_addr = format!("0.0.0.0:{}", config.port);
 
-    HttpServer::new(move || App::new().configure(routes::services).data(config.clone()))
-        .bind(ip_addr)?
-        .run()
-        .await
+    HttpServer::new(move || {
+        App::new()
+            .configure(routes::services)
+            .data(config.clone())
+            .app_data(get_json_err())
+            .wrap(Logger::default())
+            .wrap(Compress::default())
+            .wrap(NormalizePath::new(normalize::TrailingSlash::Trim))
+    })
+    .bind(ip_addr)?
+    .run()
+    .await
+}
+
+use actix_web::{error::InternalError, http::StatusCode, web::JsonConfig};
+#[cfg(not(tarpaulin_include))]
+fn get_json_err() -> JsonConfig {
+    JsonConfig::default().error_handler(|err, _| {
+        //debug!("JSON deserialization error: {:?}", &err);
+        InternalError::new(err, StatusCode::BAD_REQUEST).into()
+    })
 }
 
 #[cfg(not(tarpaulin_include))]
@@ -62,22 +92,56 @@ fn cli() -> Config {
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("auditor")
-                .help("runs peer in auditor mode")
-                .short("-a")
-                .long("--auditor")
-                .required(false)
-                .takes_value(false),
+            Arg::with_name("mode")
+                .help("available modes:\n\tauditor\n\tattacker\n\tvictim ")
+                .short("-m")
+                .long("--mode")
+                .required(true)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("discovery")
+                .help("address of discovery node")
+                .short("-d")
+                .long("--discovery")
+                .required(true)
+                .takes_value(true),
         )
         .get_matches();
 
     let peer_id = matches.value_of("peer_id").expect("Set peer ID");
-    let auditor = matches.is_present("auditor");
+
+    let mode;
+    let mut asset_leger = AssetLedger::default();
+    let mut tampered_asset_addr = None;
+
+    match matches
+        .value_of("mode")
+        .expect("Set mode")
+        .trim()
+        .to_lowercase()
+        .as_ref()
+    {
+        "auditor" => {
+            mode = Mode::Auditor;
+            asset_leger = AssetLedger::generate();
+        }
+        "victim" => mode = Mode::Victim,
+
+        "attacker" => {
+            mode = Mode::Attacker;
+            tampered_asset_addr = Some(AssetLedger::default().start());
+        }
+        _ => panic!("Enter valid peer mode"),
+    };
+
     let port: usize = matches.value_of("port").unwrap().parse().unwrap();
 
     Config {
-        auditor,
         peer_id: peer_id.into(),
         port,
+        mode,
+        tampered_asset_addr,
+        asset_addr: asset_leger.start(),
     }
 }
