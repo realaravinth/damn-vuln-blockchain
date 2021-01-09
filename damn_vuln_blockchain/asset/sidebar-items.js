@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Asset",""],["AssetLedger",""]]});
+initSidebarItems({"struct":[["Asset",""],["AssetLedger",""],["ChangeAssetOwner","Changes owner of asset `ChangeOwner.0` to  `ChangeOwner.1`"],["ChangeAssetOwnerBuilder","Builder for `ChangeAssetOwner`."],["DumpLedger","Dumps entire ledger"],["GetAssetInfo","Get asset info of `GetAssetInfo.0`"],["ReplaceLedger","Replaces asset ledger Useful when forking"]]});

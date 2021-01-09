@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["damn_vuln_blockchain"] = [{"text":"impl Message for ChangeAssetOwner","synthetic":false,"types":[]},{"text":"impl Message for GetAssetInfo","synthetic":false,"types":[]},{"text":"impl Message for DumpLedger","synthetic":false,"types":[]},{"text":"impl Message for ReplaceLedger","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

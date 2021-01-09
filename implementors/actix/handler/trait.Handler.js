@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["damn_vuln_blockchain"] = [{"text":"impl Handler&lt;DumpLedger&gt; for AssetLedger","synthetic":false,"types":[]},{"text":"impl Handler&lt;GetAssetInfo&gt; for AssetLedger","synthetic":false,"types":[]},{"text":"impl Handler&lt;ChangeAssetOwner&gt; for AssetLedger","synthetic":false,"types":[]},{"text":"impl Handler&lt;ReplaceLedger&gt; for AssetLedger","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

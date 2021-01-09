@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["damn_vuln_blockchain"] = [{"text":"impl StructuralPartialEq for ChainError","synthetic":false,"types":[]}];
+implementors["damn_vuln_blockchain"] = [{"text":"impl StructuralPartialEq for Asset","synthetic":false,"types":[]},{"text":"impl StructuralPartialEq for ChainError","synthetic":false,"types":[]},{"text":"impl StructuralPartialEq for PeerError","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
