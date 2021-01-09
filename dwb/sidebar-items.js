@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["greet",""],["main",""]]});
+initSidebarItems({"fn":[["cli",""],["main",""]],"mod":[["routes",""]],"struct":[["Config",""]]});
