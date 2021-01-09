@@ -274,6 +274,84 @@
 <span id="271">271</span>
 <span id="272">272</span>
 <span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -343,10 +421,14 @@
         <span class="self">self</span>
     }
 
+    <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utils</span>::<span class="kw-2">*</span>;
+        <span class="ident">hasher</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}{}&quot;</span>, <span class="self">self</span>.<span class="ident">prev</span>, <span class="self">self</span>.<span class="ident">rx</span>, <span class="self">self</span>.<span class="ident">tx</span>))
+    }
+
     <span class="doccomment">/// Build block, this method must be called at the very end</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Block</span> {
         <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utils</span>::<span class="kw-2">*</span>;
-
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">is_empty</span>()
             <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">is_empty</span>()
             <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">tx</span>.<span class="ident">is_empty</span>()
@@ -354,7 +436,7 @@
         {
             <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Can&#39;t create block, one or more fields are empty&quot;</span>);
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">hasher</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}{}&quot;</span>, <span class="self">self</span>.<span class="ident">prev</span>, <span class="self">self</span>.<span class="ident">rx</span>, <span class="self">self</span>.<span class="ident">tx</span>));
+            <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hash</span>();
             <span class="ident">Block</span> {
                 <span class="ident">prev</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">to_owned</span>()),
                 <span class="ident">tx</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">tx</span>.<span class="ident">to_owned</span>()),
@@ -384,6 +466,7 @@
 
 <span class="kw">impl</span> <span class="ident">Block</span> {
     <span class="doccomment">/// Get block info as string</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_genesis</span>() {
             <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Genesis block \nHash: {}&quot;</span>, <span class="self">self</span>.<span class="ident">get_hash</span>())
@@ -399,6 +482,7 @@
         }
     }
 
+    <span class="doccomment">/// checks if the block is a genesis block</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_genesis</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">tx</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">tx</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">is_none</span>() {
             <span class="kw">return</span> <span class="bool-val">true</span>;
@@ -418,6 +502,24 @@
             <span class="ident">hash</span>,
             <span class="ident">timesamp</span>: <span class="ident">get_current_time</span>(),
             <span class="ident">validator</span>: <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// computes the hash of a block, uses the same logic</span>
+    <span class="doccomment">/// for genesis blocks, it simply returns the hash stored</span>
+    <span class="doccomment">/// in the block as genesis() computes hash over random</span>
+    <span class="doccomment">/// strings</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utils</span>::<span class="kw-2">*</span>;
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_genesis</span>() {
+            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">get_hash</span>().<span class="ident">into</span>();
+        } <span class="kw">else</span> {
+            <span class="ident">hasher</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+                <span class="string">&quot;{}{}{}&quot;</span>,
+                <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
+                <span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
+                <span class="self">self</span>.<span class="ident">tx</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()
+            ))
         }
     }
 
@@ -481,6 +583,28 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">Block</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ChainResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">block</span>.<span class="ident">is_genesis</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ChainError</span>::<span class="ident">GenesisBlockAdditionError</span>);
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">blocks</span>.<span class="ident">push</span>(<span class="ident">block</span>);
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// checks if a blockchain is valid by comparing the hash of the previous</span>
+    <span class="doccomment">/// element with the block.prev of the next element in the blockchain</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ChainResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">blocks</span>.<span class="ident">iter</span>().<span class="ident">peekable</span>();
+        <span class="kw">loop</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">peek</span>() {
+                    <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">val</span>.<span class="ident">hash</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">next</span>.<span class="ident">get_prev</span>().<span class="ident">unwrap</span>() {
+                        <span class="comment">//unwrap is okay</span>
+                        <span class="comment">// here as we&#39;ll only be passing non-genesis blocks</span>
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ChainError</span>::<span class="ident">InvalidBlockChain</span>);
+                    }
+                }
+            } <span class="kw">else</span> {
+                <span class="kw">break</span>;
+            }
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -491,24 +615,14 @@
 
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">genesis</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Block</span> {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utils</span>::<span class="kw-2">*</span>;
-
-        <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">hasher</span>(<span class="kw-2">&amp;</span><span class="ident">get_rand_string</span>(<span class="number">10</span>));
-        <span class="ident">Block</span> {
-            <span class="ident">prev</span>: <span class="prelude-val">None</span>,
-            <span class="ident">tx</span>: <span class="prelude-val">None</span>,
-            <span class="ident">rx</span>: <span class="prelude-val">None</span>,
-            <span class="ident">hash</span>,
-            <span class="ident">timesamp</span>: <span class="ident">get_current_time</span>(),
-            <span class="ident">validator</span>: <span class="prelude-val">None</span>,
-        }
-    }
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">block_works</span>() {
         <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">asset</span>::<span class="ident">AssetLedger</span>;
 
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">genesis</span>();
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">Block</span>::<span class="ident">genesis</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">prev</span>.<span class="ident">is_genesis</span>(), <span class="bool-val">true</span>, <span class="string">&quot;Genesis block identified&quot;</span>);
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">prev</span>.<span class="ident">hash</span>(), <span class="ident">prev</span>.<span class="ident">hash</span>, <span class="string">&quot;Genesis block hash works&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>();
         <span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">assets</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
@@ -518,14 +632,17 @@
             .<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">prev</span>)
             .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>)
             .<span class="ident">build</span>();
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">is_genesis</span>(), <span class="bool-val">false</span>, <span class="string">&quot;non-genesis block identified&quot;</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">get_tx</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;Me&quot;</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">get_rx</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;You&quot;</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">hash</span>(), <span class="ident">block</span>.<span class="ident">hash</span>, <span class="string">&quot;non-genesis block hash works&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">should_panic</span>]</span>
     <span class="kw">fn</span> <span class="ident">block_panic_works</span>() {
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">genesis</span>();
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">Block</span>::<span class="ident">genesis</span>();
 
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>()
             .<span class="ident">set_rx</span>(<span class="string">&quot;You&quot;</span>)
@@ -537,7 +654,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">should_panic</span>]</span>
     <span class="kw">fn</span> <span class="ident">block_panic2_works</span>() {
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">genesis</span>();
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">Block</span>::<span class="ident">genesis</span>();
 
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>().<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">prev</span>).<span class="ident">build</span>();
     }
@@ -546,6 +663,45 @@
     <span class="attribute">#[<span class="ident">should_panic</span>]</span>
     <span class="kw">fn</span> <span class="ident">block_panic3_works</span>() {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>().<span class="ident">build</span>();
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">chain_works</span>() {
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">asset</span>::<span class="ident">AssetLedger</span>;
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chain</span> <span class="op">=</span> <span class="ident">Chain</span>::<span class="ident">new</span>(<span class="string">&quot;test chain&quot;</span>);
+
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">chain</span>.<span class="ident">get_last_block</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>();
+        <span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">assets</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>()
+            .<span class="ident">set_tx</span>(<span class="string">&quot;Me&quot;</span>)
+            .<span class="ident">set_rx</span>(<span class="string">&quot;You&quot;</span>)
+            .<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">prev</span>)
+            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>)
+            .<span class="ident">build</span>();
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">chain</span>.<span class="ident">add_block</span>(<span class="ident">Block</span>::<span class="ident">genesis</span>()),
+            <span class="prelude-val">Err</span>(<span class="ident">ChainError</span>::<span class="ident">GenesisBlockAdditionError</span>),
+            <span class="string">&quot;Genesis Block addition prevented&quot;</span>
+        );
+        <span class="ident">chain</span>.<span class="ident">add_block</span>(<span class="ident">block</span>.<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">chain</span>.<span class="ident">get_last_block</span>().<span class="ident">hash</span>(),
+            <span class="ident">block</span>.<span class="ident">hash</span>(),
+            <span class="string">&quot;add_block works&quot;</span>
+        );
+
+        <span class="ident">chain</span>.<span class="ident">is_valid</span>().<span class="ident">unwrap</span>();
+        <span class="ident">chain</span>.<span class="ident">add_block</span>(<span class="ident">block</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">chain</span>.<span class="ident">is_valid</span>(),
+            <span class="prelude-val">Err</span>(<span class="ident">ChainError</span>::<span class="ident">InvalidBlockChain</span>),
+            <span class="string">&quot;Chain Invalid Prevention works&quot;</span>
+        );
     }
 }
 </pre></div>

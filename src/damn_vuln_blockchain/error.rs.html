@@ -17,6 +17,9 @@
 <span id="14">14</span>
 <span id="15">15</span>
 <span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// use std::convert::From;</span>
 
@@ -26,11 +29,14 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Display</span>, <span class="ident">Clone</span>, <span class="ident">Error</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ChainError</span> {
-    <span class="doccomment">/// when the a genesis block is passed to get added toa chain</span>
+    <span class="doccomment">/// when the a genesis block is passed to get added to a chain</span>
     <span class="doccomment">/// genesis blocks are supposed to be used only during chain intiation</span>
     <span class="doccomment">/// they are invalid when they are used elsewhere</span>
     <span class="attribute">#[<span class="ident">display</span>(<span class="ident">fmt</span> <span class="op">=</span> <span class="string">&quot;Block passed is a genesis block. Can&#39;t add second Genesis block&quot;</span>)]</span>
     <span class="ident">GenesisBlockAdditionError</span>,
+    <span class="doccomment">/// Blockchain invalid when block.hash() != block.next().prev</span>
+    <span class="attribute">#[<span class="ident">display</span>(<span class="ident">fmt</span> <span class="op">=</span> <span class="string">&quot;Invalid blockchain, looks like it&#39;s been tampered!&quot;</span>)]</span>
+    <span class="ident">InvalidBlockChain</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ChainResult</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">ChainError</span><span class="op">&gt;</span>;
