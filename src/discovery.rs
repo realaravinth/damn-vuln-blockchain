@@ -32,7 +32,7 @@ impl Actor for Network {
 /// Add peer
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct AddPeer(Peer);
+pub struct AddPeer(pub Peer);
 
 /// Dump all peers
 #[derive(Message)]
@@ -42,7 +42,12 @@ pub struct DumpPeer;
 /// Get peer of ID
 #[derive(Message)]
 #[rtype(result = "Option<Peer>")]
-pub struct GetPeer(String);
+pub struct GetPeer(pub String);
+
+/// Get current network size
+#[derive(Message)]
+#[rtype(result = "usize")]
+pub struct GetCurrentSize;
 
 impl Network {
     fn get_peer_index(&self, id: &str) -> Option<usize> {
@@ -89,6 +94,14 @@ impl Handler<DumpPeer> for Network {
     }
 }
 
+impl Handler<GetCurrentSize> for Network {
+    type Result = MessageResult<GetCurrentSize>;
+
+    fn handle(&mut self, _msg: GetCurrentSize, _ctx: &mut Self::Context) -> Self::Result {
+        MessageResult(self.peer.len())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -123,6 +136,15 @@ mod test {
             network_addr.send(DumpPeer).await.unwrap().pop().unwrap().ip,
             peer.ip,
             "dump works"
+        );
+
+        // checking if GetCurrentSize works. At this point in the test, we already have
+        // a peer enrolled, so we should see size == 1
+
+        assert_eq!(
+            network_addr.send(GetCurrentSize).await.unwrap(),
+            1,
+            "GetCurrentSize works"
         );
     }
 }

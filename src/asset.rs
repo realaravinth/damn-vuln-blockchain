@@ -134,6 +134,17 @@ pub struct ChangeAssetOwner {
     pub new_owner: String,
 }
 
+/// Initializes assets to peers in the network
+/// AssetLedger` will automatically devide available assets
+/// please note that this call will result in error if it's called
+/// after all the assets' owners are changed from None to Some(val)
+#[derive(Message, Builder)]
+#[rtype(result = "()")]
+pub struct InitNetwork {
+    pub network_size: usize,
+    pub peer_id: String,
+}
+
 /// Get asset info of `GetAssetInfo.0`
 #[derive(Message)]
 #[rtype(result = "Option<Asset>")]
@@ -149,6 +160,31 @@ pub struct DumpLedger;
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct ReplaceLedger(Vec<Asset>);
+
+impl Handler<InitNetwork> for AssetLedger {
+    type Result = MessageResult<InitNetwork>;
+
+    fn handle(&mut self, msg: InitNetwork, _ctx: &mut Self::Context) -> Self::Result {
+        let length = self.assets.len();
+        let mut assets_per_peer = length / msg.network_size;
+        for i in 0..length {
+            // unwrap is okay here as I'm only `get_mut()`ing over the
+            // the length of `self.assets`
+            let asset = self.assets.get_mut(i).unwrap();
+
+            // number of assets that need to be modified are
+            // controlled by this:
+            if assets_per_peer > 0 {
+                // assets that already have an owner shouldn't be effected
+                if asset.get_owner().is_none() {
+                    asset.set_owner(&msg.peer_id);
+                    assets_per_peer -= 1;
+                }
+            }
+        }
+        MessageResult(())
+    }
+}
 
 impl Handler<DumpLedger> for AssetLedger {
     type Result = MessageResult<DumpLedger>;
@@ -220,6 +256,44 @@ mod tests {
         let new_owner = "Me".to_string();
         asset.set_owner(&new_owner);
         assert_eq!(asset.get_owner(), &Some(new_owner));
+    }
+
+    #[actix_rt::test]
+    async fn asset_ledger_init_network_works() {
+        let asset_ledger = AssetLedger::generate();
+        let assert_ledger_addr = asset_ledger.clone().start();
+        let network_size: usize = 3;
+        let msg = InitNetworkBuilder::default()
+            .network_size(network_size)
+            .peer_id("me".into())
+            .build()
+            .unwrap();
+        assert_ledger_addr.send(msg).await.unwrap();
+
+        let dump = assert_ledger_addr.send(DumpLedger).await.unwrap();
+
+        let length = dump.len();
+        let assets_per_peer = length / network_size;
+
+        let mut asset_ledger_per_peer_state = 0;
+
+        for i in dump.iter() {
+            if i.get_owner().is_some() {
+                // ownership is verified here if ownder != "me", then the
+                // below statement should panic
+                assert_eq!(
+                    i.get_owner().as_ref().unwrap(),
+                    "me",
+                    "asset ownder rightly assigned"
+                );
+                asset_ledger_per_peer_state += 1;
+            }
+        }
+
+        assert_eq!(
+            assets_per_peer, asset_ledger_per_peer_state,
+            "assets per peer satisfied, no over allocation, no under allocation"
+        );
     }
 
     #[actix_rt::test]

@@ -18,8 +18,10 @@ use actix::prelude::*;
 
 use damn_vuln_blockchain::asset::AssetLedger;
 use damn_vuln_blockchain::blockchain::Chain;
+use damn_vuln_blockchain::discovery::Network;
 
 mod routes;
+
 #[derive(Clone)]
 pub struct Config {
     pub mode: Mode,
@@ -28,6 +30,8 @@ pub struct Config {
     pub asset_addr: Addr<AssetLedger>,
     pub chain_addr: Addr<Chain>,
     pub tampered_chain_addr: Option<Addr<Chain>>,
+    pub network_addr: Addr<Network>,
+    pub init_network_size: usize,
 }
 
 #[derive(Clone)]
@@ -95,6 +99,14 @@ fn cli() -> Config {
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("network_size")
+                .help("set intial network size")
+                .short("-n")
+                .long("--network-size")
+                .required(true)
+                .takes_value(true),
+        )
+        .arg(
             Arg::with_name("mode")
                 .help("available modes:\n\tauditor\n\tattacker\n\tvictim ")
                 .short("-m")
@@ -118,6 +130,13 @@ fn cli() -> Config {
     let mut asset_leger = AssetLedger::default();
     let chain_addr = Chain::new("Legit").start();
     let tampered_chain_addr = None;
+    let network_addr = Network::default().start();
+
+    let init_network_size: usize = matches
+        .value_of("network_size")
+        .expect("set network_size")
+        .parse()
+        .unwrap();
 
     match matches
         .value_of("mode")
@@ -149,5 +168,7 @@ fn cli() -> Config {
         asset_addr: asset_leger.start(),
         tampered_chain_addr,
         chain_addr,
+        network_addr,
+        init_network_size,
     }
 }

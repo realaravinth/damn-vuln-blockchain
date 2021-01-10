@@ -16,7 +16,7 @@
 */
 
 use actix_web::{
-    get,
+    get, post,
     web::{self, ServiceConfig},
     HttpResponse, Responder,
 };
@@ -24,20 +24,158 @@ use actix_web::{
 use crate::Config;
 use damn_vuln_blockchain::logs::Peer;
 
-//#[get("/")]
-//async fn greet(req: HttpRequest) -> impl Responder {
-//    let name = req.match_info().get("name").unwrap_or("World");
-//    format!("Hello {}!", &name)
-//}
-
 // peer enrollment
-#[get("/peer/enroll/")]
-async fn peer_enroll(creds: web::Json<Peer>, data: web::Data<Config>) -> impl Responder {
-    //    let ip = creds.into_inner().ip;
-    //    let peer_id = creds.into_inner().id;
+#[post("/peer/enroll")]
+async fn peer_enroll(peer: web::Json<Peer>, data: web::Data<Config>) -> impl Responder {
+    use damn_vuln_blockchain::asset::InitNetworkBuilder;
+    use damn_vuln_blockchain::discovery::{AddPeer, GetCurrentSize};
+
+    // peer enrollment should only happen when current_network_size < data.init_network_size
+    let current_network_size = data.network_addr.send(GetCurrentSize).await.unwrap();
+    if current_network_size < data.init_network_size {
+        let asset_message = InitNetworkBuilder::default()
+            .network_size(data.init_network_size)
+            .peer_id(peer.id.clone())
+            .build()
+            .unwrap();
+
+        data.network_addr
+            .send(AddPeer(peer.into_inner()))
+            .await
+            .unwrap();
+
+        data.asset_addr.send(asset_message).await.unwrap();
+    }
+
+    // TODO, must return error when current_network_size == data.init_network_size
     HttpResponse::Ok()
 }
 
+// peer enrollment
+#[get("/peer/discover/all")]
+async fn peer_dump(data: web::Data<Config>) -> impl Responder {
+    use damn_vuln_blockchain::discovery::DumpPeer;
+    let peer_data = data.network_addr.send(DumpPeer).await.unwrap();
+    HttpResponse::Ok().json(peer_data)
+}
+
+// asset dump
+#[get("/assets/all")]
+async fn assets_dump(data: web::Data<Config>) -> impl Responder {
+    use damn_vuln_blockchain::asset::DumpLedger;
+    let assets = data.asset_addr.send(DumpLedger).await.unwrap();
+    HttpResponse::Ok().json(assets)
+}
+
 pub fn services(cfg: &mut ServiceConfig) {
-    //    cfg.service(greet);
+    cfg.service(peer_enroll);
+    cfg.service(peer_dump);
+    cfg.service(assets_dump);
+}
+
+#[cfg(test)]
+mod tests {
+
+    use actix::prelude::*;
+    use actix_web::{http::header, test, App};
+
+    use damn_vuln_blockchain::asset::{Asset, AssetLedger};
+    use damn_vuln_blockchain::blockchain::Chain;
+    use damn_vuln_blockchain::discovery::Network;
+
+    use super::*;
+
+    fn get_data() -> Config {
+        let peer_id = "testnet";
+
+        let mode = crate::Mode::Auditor;
+        let asset_leger = AssetLedger::generate();
+        let chain_addr = Chain::new("Legit").start();
+        let tampered_chain_addr = None;
+        let network_addr = Network::default().start();
+        let init_network_size = 2;
+
+        let port: usize = 8081; // dummy
+
+        Config {
+            peer_id: peer_id.into(),
+            port,
+            mode,
+            //       tampered_asset_addr,
+            asset_addr: asset_leger.start(),
+            tampered_chain_addr,
+            chain_addr,
+            network_addr,
+            init_network_size,
+        }
+    }
+
+    #[actix_rt::test]
+    async fn dump_and_enroll_work() {
+        let mut app =
+            test::init_service(App::new().configure(services).data(get_data().clone())).await;
+        let peer = Peer {
+            id: "testing".into(),
+            ip: "yolo".into(),
+        };
+        let payload = serde_json::to_string(&peer).unwrap();
+
+        // testing peer enrollemnt
+        let req = test::TestRequest::post()
+            .uri("/peer/enroll")
+            .header(header::CONTENT_TYPE, "applicatin/json")
+            .set_payload(payload)
+            .to_request();
+
+        let mut resp = test::call_service(&mut app, req).await;
+
+        assert!(resp.status().is_success(), "peer enrollment is 200");
+
+        // testing peer dump by getting the dump and comparing it against
+        // the peer that was enrolled in the previous test
+        let req = test::TestRequest::get()
+            .uri("/peer/discover/all")
+            .to_request();
+        resp = test::call_service(&mut app, req).await;
+        assert!(resp.status().is_success(), "peer dump is 200");
+        let mut json_resp: Vec<Peer> = test::read_body_json(resp).await;
+        assert_eq!(json_resp.pop().unwrap().ip, peer.ip, "peer dump works");
+
+        // testing if the assets have been assigned to the newly enrolled peer
+        let req = test::TestRequest::get().uri("/assets/all").to_request();
+        resp = test::call_service(&mut app, req).await;
+        assert!(resp.status().is_success(), "peer dump is 200");
+        let json_resp: Vec<Asset> = test::read_body_json(resp).await;
+
+        let network_size = get_data().init_network_size;
+        //        assert_eq!(json_resp.pop().unwrap().ip, peer.ip, "peer dump works");
+        //
+        // total number of assets:
+        let length = json_resp.len();
+        // total number of assets that should be assigned to a new peer
+        let assets_per_peer = length / network_size;
+
+        let mut asset_ledger_per_peer_state = 0;
+
+        // checking if ownsership is alright
+        for i in json_resp.iter() {
+            if i.get_owner().is_some() {
+                // ownership is verified here if ownder != "testing", then the
+                // below statement should panic
+                assert_eq!(
+                    i.get_owner().as_ref().unwrap(),
+                    "testing",
+                    "asset ownder rightly assigned"
+                );
+                // counting asset to peer "testing"(only testing, see above comment)
+                asset_ledger_per_peer_state += 1;
+            }
+        }
+
+        // checking assets for over/under assignment to new peers
+        assert_eq!(
+            assets_per_peer, asset_ledger_per_peer_state,
+            "assets per peer satisfied, no over allocation, no under allocation"
+        );
+    }
 }
