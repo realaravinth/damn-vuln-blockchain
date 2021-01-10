@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["AddBlock","Add Block"],["Chain","Ledger data-structure for the blockchain"],["DumpLedger","Dumps entire ledger Useful when forking: send `DumpLedger` and send output with `ReplaceChain`"],["GetLastBlock","Get last block"],["ReplaceChain","Replace Chain"]]});

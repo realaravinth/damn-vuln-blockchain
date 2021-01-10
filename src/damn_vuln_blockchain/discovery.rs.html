@@ -151,6 +151,15 @@
 <span id="148">148</span>
 <span id="149">149</span>
 <span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -168,6 +177,15 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
 */</span>
+
+<span class="doccomment">//! Peer management service for synchronising and discovery.</span>
+<span class="doccomment">//! The easiest way to interact with the peer management service</span>
+<span class="doccomment">//! is with the [Network] actor.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # [Network] actor supports the following messages:</span>
+<span class="doccomment">//! - [AddPeer]: Add a peer to the network</span>
+<span class="doccomment">//! - [DumpPeer]: Get a dump of all peers in the network</span>
+<span class="doccomment">//! - [GetPeer]: Get ingo on a specific peer</span>
 
 <span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};

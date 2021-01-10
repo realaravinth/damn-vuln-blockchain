@@ -41,9 +41,43 @@
 <span id="38">38</span>
 <span id="39">39</span>
 <span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="comment">// use std::convert::From;</span>
+<span class="comment">/*
+* Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Affero General Public License as
+* published by the Free Software Foundation, either version 3 of the
+* License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Affero General Public License for more details.
+*
+* You should have received a copy of the GNU Affero General Public License
+* along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
+*/</span>
 
+<span class="doccomment">//! Error datatypes</span>
 <span class="kw">use</span> <span class="ident">derive_more</span>::{<span class="ident">Display</span>, <span class="ident">Error</span>};
 
 <span class="doccomment">/// Errors that can occur when interacting with the blockchain</span>
@@ -64,6 +98,7 @@
     <span class="ident">InconsistentBlockAdition</span>,
 }
 
+<span class="doccomment">/// [Result] datatype for Chain interactions</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ChainResult</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">ChainError</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Errors that can occur when interacting with the blockchain</span>
@@ -81,6 +116,7 @@
     <span class="ident">ChainError</span>(<span class="ident">ChainError</span>),
 }
 
+<span class="doccomment">/// [Result] datatype for peer interactions</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeerResult</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">PeerError</span><span class="op">&gt;</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "damn_vuln_blockchain";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

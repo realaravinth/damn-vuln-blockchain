@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ChainError","Errors that can occur when interacting with the blockchain"],["PeerError","Errors that can occur when interacting with the blockchain"]],"type":[["ChainResult",""],["PeerResult",""]]});
+initSidebarItems({"enum":[["ChainError","Errors that can occur when interacting with the blockchain"],["PeerError","Errors that can occur when interacting with the blockchain"]],"type":[["ChainResult","[Result] datatype for Chain interactions"],["PeerResult","[Result] datatype for peer interactions"]]});

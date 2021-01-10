@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Block","Smallest data-sctructure that can go into Chain."],["BlockBuilder","Builder struct for [Block]"]]});

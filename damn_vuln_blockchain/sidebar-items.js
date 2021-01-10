@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["asset",""],["blockchain",""],["discovery",""],["error",""],["logs",""],["utils",""]]});
+initSidebarItems({"mod":[["asset","Assets are objects that can be transacted on the blockchain"],["block","the smallest unit/data-structure that can go into the blockchain"],["chain","Ledger data-structure for the blockchain"],["discovery","Peer management service for synchronising and discovery. The easiest way to interact with the peer management service is with the [Network] actor."],["error","Error datatypes"],["logs",""]]});
