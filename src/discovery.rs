@@ -15,6 +15,15 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+//! Peer management service for synchronising and discovery.
+//! The easiest way to interact with the peer management service
+//! is with the [Network] actor.
+//!
+//! # [Network] actor supports the following messages:
+//! - [AddPeer]: Add a peer to the network
+//! - [DumpPeer]: Get a dump of all peers in the network
+//! - [GetPeer]: Get ingo on a specific peer
+
 use actix::prelude::*;
 use serde::{Deserialize, Serialize};
 

@@ -18,7 +18,7 @@
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
-use crate::blockchain::Block;
+use crate::block::Block;
 use crate::{asset::Asset, utils::*};
 
 #[derive(Deserialize, Display)]

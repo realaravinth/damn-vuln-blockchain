@@ -14,6 +14,16 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+//! Assets are objects that can be transacted on the blockchain
+//!
+//! The easiest way to manage [Asset] with te [AssetLedger] actor
+//! # [AssetLedger] Messages:
+//! - [ChangeAssetOwner]: Changes an asset's owner
+//! - [InitNetwork]: Initializes assets to peers in the network
+//! - [GetAssetInfo]: Get an asset's info
+//! - [DumpLedger]: Dump the entire asset ledger
+//! - [ReplaceLedger]: Replace the current ledger with another ledger, useful when
+//! synchronising state
 
 use std::fmt::{Display, Formatter, Result};
 
@@ -21,12 +31,15 @@ use actix::prelude::*;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+/// [Asest]s are objects that can be transacted on the blockchain
 #[derive(PartialEq, Deserialize, Serialize, Clone, Debug)]
 pub struct Asset {
     name: String,
     value: usize,
     hash: String,
     owner: Option<String>,
+    /// The last transaction where this asset was used
+    coinage: Option<String>,
 }
 
 impl Display for Asset {
@@ -59,6 +72,7 @@ impl Asset {
             value,
             owner: None,
             hash,
+            coinage: None,
         }
     }
 
@@ -82,12 +96,23 @@ impl Asset {
         self.owner = Some(owner.into());
     }
 
+    /// set coinage of the asset
+    pub fn set_coinage(&mut self, coinage: &str) {
+        self.coinage = Some(coinage.into());
+    }
+
     /// get owner of the asset
     pub fn get_owner(&self) -> &Option<String> {
         &self.owner
     }
+
+    /// get coinage of the asset
+    pub fn get_coinage(&self) -> &Option<String> {
+        &self.coinage
+    }
 }
 
+/// [AssetLedger] represents the world(full network) state of [Assets]
 #[derive(Deserialize, Default, Serialize, Clone, Debug)]
 pub struct AssetLedger {
     pub assets: Vec<Asset>,
@@ -256,6 +281,8 @@ mod tests {
         let new_owner = "Me".to_string();
         asset.set_owner(&new_owner);
         assert_eq!(asset.get_owner(), &Some(new_owner));
+        asset.set_coinage("a");
+        assert_eq!(asset.get_coinage().as_ref().unwrap(), "a");
     }
 
     #[actix_rt::test]

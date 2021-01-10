@@ -17,7 +17,7 @@
 use actix::prelude::*;
 
 use damn_vuln_blockchain::asset::AssetLedger;
-use damn_vuln_blockchain::blockchain::Chain;
+use damn_vuln_blockchain::chain::Chain;
 use damn_vuln_blockchain::discovery::Network;
 
 mod routes;

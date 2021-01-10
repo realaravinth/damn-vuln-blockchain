@@ -15,188 +15,33 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+//! Ledger data-structure for the blockchain
+//!
+//! ## Create a new blockchain
+//! ```rust
+//! use damn_vuln_blockchain::{ asset::AssetLedger, block::{BlockBuilder, Block}, chain::Chain};
+//!
+//! fn main() {
+//!        let chain = Chain::new("My chain"); // crate cahin
+//!   }
+//! ```
+//!
+//! The easiest way to interact with the ledger is via the [Chain] actor.
+//!
+//! # [Chain] supports the followings messages"
+//! - [AddBlock]: adds a [Block] to the blockchain
+//! - [GetLastBlock]: get's the latest [Block] in the blockchain
+//! - [DumpLedger]: dumps the entire ledger
+//! - [ReplaceChain]: replaces a [Vec<Block>] inside the [Chain] data-structure, useful
+//! when synchronising ledgers
+
 use actix::prelude::*;
-use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
-use crate::asset::Asset;
+use crate::block::Block;
 use crate::error::*;
 
-#[derive(Deserialize, Serialize, Clone, Debug, Default)]
-pub struct BlockBuilder {
-    /// previous block's hash
-    prev: String,
-    /// sender's peer ID
-    tx: String,
-    /// receiver's peer ID
-    rx: String,
-    /// asset ID
-    asset_id: String,
-    /// validator's ID
-    validator: String,
-}
-
-impl BlockBuilder {
-    /// set previous block's hash
-    pub fn set_prev(&mut self, prev: &Block) -> &mut Self {
-        self.prev = prev.get_hash().into();
-        self
-    }
-
-    /// set receiver's ID
-    pub fn set_rx(&mut self, rx: &str) -> &mut Self {
-        self.rx = rx.into();
-        self
-    }
-
-    /// set sender's ID
-    pub fn set_tx(&mut self, tx: &str) -> &mut Self {
-        self.tx = tx.into();
-        self
-    }
-
-    /// set validator's ID
-    pub fn set_validator(&mut self, validator: &str) -> &mut Self {
-        self.validator = validator.into();
-        self
-    }
-
-    /// set assset ID
-    pub fn set_asset_id(&mut self, assset: &Asset) -> &mut Self {
-        self.asset_id = assset.get_hash().into();
-        self
-    }
-
-    fn hash(&self) -> String {
-        use crate::utils::*;
-        hasher(&format!("{}{}{}", self.prev, self.rx, self.tx))
-    }
-
-    /// Build block, this method must be called at the very end
-    pub fn build(&mut self) -> Block {
-        use crate::utils::*;
-        if self.prev.is_empty()
-            || self.rx.is_empty()
-            || self.tx.is_empty()
-            || self.asset_id.is_empty()
-        {
-            panic!("Can't create block, one or more fields are empty");
-        } else {
-            let hash = self.hash();
-            Block {
-                prev: Some(self.prev.to_owned()),
-                tx: Some(self.tx.to_owned()),
-                rx: Some(self.rx.to_owned()),
-                hash,
-                validator: Some(self.validator.to_owned()),
-                timesamp: get_current_time(),
-            }
-        }
-    }
-}
-
-#[derive(Display, Deserialize, Serialize, Clone, Debug, Default)]
-#[display(fmt = "{}", hash)]
-/// Block. `tx`, `prev`, validator and `rx` are `Option<_>` to accomodate
-/// genesis block. Blockchain implementors must check for the
-/// existence of genesis block before appending the block to
-/// the ledger
-pub struct Block {
-    prev: Option<String>,
-    hash: String,
-    tx: Option<String>,
-    rx: Option<String>,
-    timesamp: String,
-    validator: Option<String>,
-}
-
-impl Block {
-    /// Get block info as string
-    #[cfg(not(tarpaulin_include))]
-    pub fn to_string(&self) -> String {
-        if self.is_genesis() {
-            format!("Genesis block \nHash: {}", self.get_hash())
-        } else {
-            format!(
-                "Previous Block: {}\nHash: {}\n Validator: {}\nSender: {}\nReceiver: {}\n",
-                &self.get_prev().as_ref().unwrap(),
-                &self.get_hash(),
-                &self.get_validator().as_ref().unwrap(),
-                &self.get_rx().as_ref().unwrap(),
-                &self.get_tx().as_ref().unwrap()
-            )
-        }
-    }
-
-    /// checks if the block is a genesis block
-    pub fn is_genesis(&self) -> bool {
-        if self.prev.is_none() || self.tx.is_none() || self.tx.is_none() || self.rx.is_none() {
-            return true;
-        }
-        false
-    }
-
-    // creates genesis block
-    fn genesis() -> Block {
-        use crate::utils::*;
-
-        let hash = hasher(&get_rand_string(10));
-        Block {
-            prev: None,
-            tx: None,
-            rx: None,
-            hash,
-            timesamp: get_current_time(),
-            validator: None,
-        }
-    }
-
-    /// computes the hash of a block, uses the same logic
-    /// for genesis blocks, it simply returns the hash stored
-    /// in the block as genesis() computes hash over random
-    /// strings
-    pub fn hash(&self) -> String {
-        use crate::utils::*;
-        if self.is_genesis() {
-            return self.get_hash().into();
-        } else {
-            hasher(&format!(
-                "{}{}{}",
-                self.prev.as_ref().unwrap(),
-                self.rx.as_ref().unwrap(),
-                self.tx.as_ref().unwrap()
-            ))
-        }
-    }
-
-    /// get hash of previous block
-    pub fn get_prev(&self) -> Option<&String> {
-        self.prev.as_ref()
-    }
-
-    /// get hash of block
-    pub fn get_hash(&self) -> &str {
-        &self.hash
-    }
-
-    /// get receiver involved in the transaction that lead tot
-    /// the creation of this block
-    pub fn get_rx(&self) -> Option<&String> {
-        self.rx.as_ref()
-    }
-
-    /// get validator involved in the creation of this block
-    pub fn get_validator(&self) -> Option<&String> {
-        self.validator.as_ref()
-    }
-
-    /// get sender involved in the transaction that lead tot
-    /// the creation of this block
-    pub fn get_tx(&self) -> Option<&String> {
-        self.tx.as_ref()
-    }
-}
-
+/// Ledger data-structure for the blockchain
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Chain {
     name: String,
@@ -272,7 +117,7 @@ impl Actor for Chain {
 /// Add Block
 #[derive(Message)]
 #[rtype(result = "ChainResult<()>")]
-pub struct AddBlock(Block);
+pub struct AddBlock(pub Block);
 
 /// Get last block
 #[derive(Message)]
@@ -282,7 +127,7 @@ pub struct GetLastBlock;
 /// Replace Chain
 #[derive(Message)]
 #[rtype(result = "ChainResult<()>")]
-pub struct ReplaceChain(Vec<Block>);
+pub struct ReplaceChain(pub Vec<Block>);
 
 /// Dumps entire ledger
 /// Useful when forking:
@@ -327,56 +172,7 @@ impl Handler<DumpLedger> for Chain {
 mod tests {
 
     use super::*;
-
-    #[test]
-    fn block_works() {
-        use crate::asset::AssetLedger;
-
-        let prev = Block::genesis();
-        assert_eq!(prev.is_genesis(), true, "Genesis block identified");
-
-        assert_eq!(prev.hash(), prev.hash, "Genesis block hash works");
-        let mut assets = AssetLedger::generate();
-        let asset = assets.assets.pop().unwrap();
-
-        let block = BlockBuilder::default()
-            .set_tx("Me")
-            .set_rx("You")
-            .set_prev(&prev)
-            .set_asset_id(&asset)
-            .build();
-
-        assert_eq!(block.is_genesis(), false, "non-genesis block identified");
-        assert_eq!(block.get_tx().unwrap(), "Me");
-        assert_eq!(block.get_rx().unwrap(), "You");
-        assert_eq!(block.hash(), block.hash, "non-genesis block hash works");
-    }
-
-    #[test]
-    #[should_panic]
-    fn block_panic_works() {
-        let prev = Block::genesis();
-
-        let _ = BlockBuilder::default()
-            .set_rx("You")
-            .set_tx("Me")
-            .set_prev(&prev)
-            .build();
-    }
-
-    #[test]
-    #[should_panic]
-    fn block_panic2_works() {
-        let prev = Block::genesis();
-
-        let _ = BlockBuilder::default().set_prev(&prev).build();
-    }
-
-    #[test]
-    #[should_panic]
-    fn block_panic3_works() {
-        let _ = BlockBuilder::default().build();
-    }
+    use crate::block::*;
 
     #[test]
     fn chain_works() {

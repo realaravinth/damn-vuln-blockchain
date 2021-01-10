@@ -24,6 +24,10 @@ use actix_web::{
 use crate::Config;
 use damn_vuln_blockchain::logs::Peer;
 
+//#[post("/assets/buy")]
+//async fn asset_buy(data: web::Data<Config>) -> impl Responder {
+//}
+
 // peer enrollment
 #[post("/peer/enroll")]
 async fn peer_enroll(peer: web::Json<Peer>, data: web::Data<Config>) -> impl Responder {
@@ -67,6 +71,12 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
     HttpResponse::Ok().json(assets)
 }
 
+//// buy asset
+//#[post("/assets/buy")]
+//async fn assets_coinage(data: web::Data<Config>) -> impl Responder {
+//    let l
+//}
+
 pub fn services(cfg: &mut ServiceConfig) {
     cfg.service(peer_enroll);
     cfg.service(peer_dump);
@@ -80,7 +90,7 @@ mod tests {
     use actix_web::{http::header, test, App};
 
     use damn_vuln_blockchain::asset::{Asset, AssetLedger};
-    use damn_vuln_blockchain::blockchain::Chain;
+    use damn_vuln_blockchain::chain::Chain;
     use damn_vuln_blockchain::discovery::Network;
 
     use super::*;

@@ -22,7 +22,7 @@
 //!
 //! ## Create a new blockchain
 //! ```rust
-//! use damn_vuln_blockchain::{ asset::AssetLedger, blockchain::{BlockBuilder, Chain, Block}};
+//! use damn_vuln_blockchain::{ asset::AssetLedger, block::{BlockBuilder, Block}, chain::Chain};
 //!
 //! fn main() {
 //!        let chain = Chain::new("My chain"); // crate cahin
@@ -31,7 +31,8 @@
 //!
 //! ## Create a block
 //! ```rust
-//! use damn_vuln_blockchain::{ asset::AssetLedger, blockchain::{BlockBuilder, Chain, Block}};
+//! use damn_vuln_blockchain::{ asset::AssetLedger, block::{BlockBuilder, Block}, chain::Chain};
+//!
 //!
 //! fn main() {
 //!        let chain = Chain::new("My chain"); // create blockchain
@@ -57,8 +58,9 @@
 //! ```
 
 pub mod asset;
-pub mod blockchain;
+pub mod block;
+pub mod chain;
 pub mod discovery;
 pub mod error;
 pub mod logs;
-pub mod utils;
+mod utils;
