@@ -282,6 +282,80 @@
 <span id="279">279</span>
 <span id="280">280</span>
 <span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -419,6 +493,17 @@
     <span class="kw">pub</span> <span class="ident">new_owner</span>: <span class="ident">String</span>,
 }
 
+<span class="doccomment">/// Initializes assets to peers in the network</span>
+<span class="doccomment">/// AssetLedger` will automatically devide available assets</span>
+<span class="doccomment">/// please note that this call will result in error if it&#39;s called</span>
+<span class="doccomment">/// after all the assets&#39; owners are changed from None to Some(val)</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Message</span>, <span class="ident">Builder</span>)]</span>
+<span class="attribute">#[<span class="ident">rtype</span>(<span class="ident">result</span> <span class="op">=</span> <span class="string">&quot;()&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InitNetwork</span> {
+    <span class="kw">pub</span> <span class="ident">network_size</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">peer_id</span>: <span class="ident">String</span>,
+}
+
 <span class="doccomment">/// Get asset info of `GetAssetInfo.0`</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Message</span>)]</span>
 <span class="attribute">#[<span class="ident">rtype</span>(<span class="ident">result</span> <span class="op">=</span> <span class="string">&quot;Option&lt;Asset&gt;&quot;</span>)]</span>
@@ -434,6 +519,31 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Message</span>)]</span>
 <span class="attribute">#[<span class="ident">rtype</span>(<span class="ident">result</span> <span class="op">=</span> <span class="string">&quot;()&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReplaceLedger</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Asset</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">InitNetwork</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetLedger</span> {
+    <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">MessageResult</span><span class="op">&lt;</span><span class="ident">InitNetwork</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">InitNetwork</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">assets</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets_per_peer</span> <span class="op">=</span> <span class="ident">length</span> <span class="op">/</span> <span class="ident">msg</span>.<span class="ident">network_size</span>;
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
+            <span class="comment">// unwrap is okay here as I&#39;m only `get_mut()`ing over the</span>
+            <span class="comment">// the length of `self.assets`</span>
+            <span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">assets</span>.<span class="ident">get_mut</span>(<span class="ident">i</span>).<span class="ident">unwrap</span>();
+
+            <span class="comment">// number of assets that need to be modified are</span>
+            <span class="comment">// controlled by this:</span>
+            <span class="kw">if</span> <span class="ident">assets_per_peer</span> <span class="op">&gt;</span> <span class="number">0</span> {
+                <span class="comment">// assets that already have an owner shouldn&#39;t be effected</span>
+                <span class="kw">if</span> <span class="ident">asset</span>.<span class="ident">get_owner</span>().<span class="ident">is_none</span>() {
+                    <span class="ident">asset</span>.<span class="ident">set_owner</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>.<span class="ident">peer_id</span>);
+                    <span class="ident">assets_per_peer</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                }
+            }
+        }
+        <span class="ident">MessageResult</span>(())
+    }
+}
 
 <span class="kw">impl</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">DumpLedger</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetLedger</span> {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">MessageResult</span><span class="op">&lt;</span><span class="ident">DumpLedger</span><span class="op">&gt;</span>;
@@ -505,6 +615,44 @@
         <span class="kw">let</span> <span class="ident">new_owner</span> <span class="op">=</span> <span class="string">&quot;Me&quot;</span>.<span class="ident">to_string</span>();
         <span class="ident">asset</span>.<span class="ident">set_owner</span>(<span class="kw-2">&amp;</span><span class="ident">new_owner</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">asset</span>.<span class="ident">get_owner</span>(), <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="ident">new_owner</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">actix_rt</span>::<span class="ident">test</span>]</span>
+    <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">asset_ledger_init_network_works</span>() {
+        <span class="kw">let</span> <span class="ident">asset_ledger</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>();
+        <span class="kw">let</span> <span class="ident">assert_ledger_addr</span> <span class="op">=</span> <span class="ident">asset_ledger</span>.<span class="ident">clone</span>().<span class="ident">start</span>();
+        <span class="kw">let</span> <span class="ident">network_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">3</span>;
+        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">InitNetworkBuilder</span>::<span class="ident">default</span>()
+            .<span class="ident">network_size</span>(<span class="ident">network_size</span>)
+            .<span class="ident">peer_id</span>(<span class="string">&quot;me&quot;</span>.<span class="ident">into</span>())
+            .<span class="ident">build</span>()
+            .<span class="ident">unwrap</span>();
+        <span class="ident">assert_ledger_addr</span>.<span class="ident">send</span>(<span class="ident">msg</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">dump</span> <span class="op">=</span> <span class="ident">assert_ledger_addr</span>.<span class="ident">send</span>(<span class="ident">DumpLedger</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">dump</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">assets_per_peer</span> <span class="op">=</span> <span class="ident">length</span> <span class="op">/</span> <span class="ident">network_size</span>;
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">asset_ledger_per_peer_state</span> <span class="op">=</span> <span class="number">0</span>;
+
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">dump</span>.<span class="ident">iter</span>() {
+            <span class="kw">if</span> <span class="ident">i</span>.<span class="ident">get_owner</span>().<span class="ident">is_some</span>() {
+                <span class="comment">// ownership is verified here if ownder != &quot;me&quot;, then the</span>
+                <span class="comment">// below statement should panic</span>
+                <span class="macro">assert_eq</span><span class="macro">!</span>(
+                    <span class="ident">i</span>.<span class="ident">get_owner</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
+                    <span class="string">&quot;me&quot;</span>,
+                    <span class="string">&quot;asset ownder rightly assigned&quot;</span>
+                );
+                <span class="ident">asset_ledger_per_peer_state</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            }
+        }
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">assets_per_peer</span>, <span class="ident">asset_ledger_per_peer_state</span>,
+            <span class="string">&quot;assets per peer satisfied, no over allocation, no under allocation&quot;</span>
+        );
     }
 
     <span class="attribute">#[<span class="ident">actix_rt</span>::<span class="ident">test</span>]</span>

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["AddPeer","Add peer"],["DumpPeer","Dump all peers"],["GetPeer","Get peer of ID"],["Network",""]]});
+initSidebarItems({"struct":[["AddPeer","Add peer"],["DumpPeer","Dump all peers"],["GetCurrentSize","Get current network size"],["GetPeer","Get peer of ID"],["Network",""]]});

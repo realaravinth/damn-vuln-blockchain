@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["services",""]],"struct":[["peer_enroll",""]]});
+initSidebarItems({"fn":[["services",""]],"struct":[["assets_dump",""],["peer_dump",""],["peer_enroll",""]]});

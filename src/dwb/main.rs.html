@@ -154,6 +154,27 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -175,8 +196,10 @@
 
 <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">asset</span>::<span class="ident">AssetLedger</span>;
 <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">blockchain</span>::<span class="ident">Chain</span>;
+<span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">discovery</span>::<span class="ident">Network</span>;
 
 <span class="kw">mod</span> <span class="ident">routes</span>;
+
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Config</span> {
     <span class="kw">pub</span> <span class="ident">mode</span>: <span class="ident">Mode</span>,
@@ -185,6 +208,8 @@
     <span class="kw">pub</span> <span class="ident">asset_addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">AssetLedger</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">chain_addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">tampered_chain_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Chain</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">network_addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Network</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">init_network_size</span>: <span class="ident">usize</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
@@ -252,6 +277,14 @@
                 .<span class="ident">takes_value</span>(<span class="bool-val">true</span>),
         )
         .<span class="ident">arg</span>(
+            <span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;network_size&quot;</span>)
+                .<span class="ident">help</span>(<span class="string">&quot;set intial network size&quot;</span>)
+                .<span class="ident">short</span>(<span class="string">&quot;-n&quot;</span>)
+                .<span class="ident">long</span>(<span class="string">&quot;--network-size&quot;</span>)
+                .<span class="ident">required</span>(<span class="bool-val">true</span>)
+                .<span class="ident">takes_value</span>(<span class="bool-val">true</span>),
+        )
+        .<span class="ident">arg</span>(
             <span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;mode&quot;</span>)
                 .<span class="ident">help</span>(<span class="string">&quot;available modes:\n\tauditor\n\tattacker\n\tvictim &quot;</span>)
                 .<span class="ident">short</span>(<span class="string">&quot;-m&quot;</span>)
@@ -275,6 +308,13 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">asset_leger</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">default</span>();
     <span class="kw">let</span> <span class="ident">chain_addr</span> <span class="op">=</span> <span class="ident">Chain</span>::<span class="ident">new</span>(<span class="string">&quot;Legit&quot;</span>).<span class="ident">start</span>();
     <span class="kw">let</span> <span class="ident">tampered_chain_addr</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="kw">let</span> <span class="ident">network_addr</span> <span class="op">=</span> <span class="ident">Network</span>::<span class="ident">default</span>().<span class="ident">start</span>();
+
+    <span class="kw">let</span> <span class="ident">init_network_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">matches</span>
+        .<span class="ident">value_of</span>(<span class="string">&quot;network_size&quot;</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;set network_size&quot;</span>)
+        .<span class="ident">parse</span>()
+        .<span class="ident">unwrap</span>();
 
     <span class="kw">match</span> <span class="ident">matches</span>
         .<span class="ident">value_of</span>(<span class="string">&quot;mode&quot;</span>)
@@ -306,6 +346,8 @@
         <span class="ident">asset_addr</span>: <span class="ident">asset_leger</span>.<span class="ident">start</span>(),
         <span class="ident">tampered_chain_addr</span>,
         <span class="ident">chain_addr</span>,
+        <span class="ident">network_addr</span>,
+        <span class="ident">init_network_size</span>,
     }
 }
 </pre></div>
