@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["asset",""],["blockchain",""],["error",""],["logs",""],["utils",""]]});
+initSidebarItems({"mod":[["asset",""],["blockchain",""],["discovery",""],["error",""],["logs",""],["utils",""]]});

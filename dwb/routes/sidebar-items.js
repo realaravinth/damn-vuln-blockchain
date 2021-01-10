@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["services",""]],"struct":[["greet",""]]});
+initSidebarItems({"fn":[["services",""]],"struct":[["peer_enroll",""]]});

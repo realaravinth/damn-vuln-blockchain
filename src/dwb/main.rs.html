@@ -178,7 +178,7 @@
 
 <span class="kw">mod</span> <span class="ident">routes</span>;
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Config</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Config</span> {
     <span class="kw">pub</span> <span class="ident">mode</span>: <span class="ident">Mode</span>,
     <span class="kw">pub</span> <span class="ident">peer_id</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">port</span>: <span class="ident">usize</span>,
@@ -188,7 +188,7 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Mode</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Mode</span> {
     <span class="ident">Auditor</span>,
     <span class="ident">Attacker</span>,
     <span class="ident">Victim</span>,
