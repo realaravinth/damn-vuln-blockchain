@@ -58,6 +58,7 @@
 
 pub mod asset;
 pub mod blockchain;
+pub mod discovery;
 pub mod error;
 pub mod logs;
 pub mod utils;

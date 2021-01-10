@@ -15,14 +15,29 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use actix_web::{get, web::ServiceConfig, HttpRequest, Responder};
+use actix_web::{
+    get,
+    web::{self, ServiceConfig},
+    HttpResponse, Responder,
+};
 
-#[get("/")]
-async fn greet(req: HttpRequest) -> impl Responder {
-    let name = req.match_info().get("name").unwrap_or("World");
-    format!("Hello {}!", &name)
+use crate::Config;
+use damn_vuln_blockchain::logs::Peer;
+
+//#[get("/")]
+//async fn greet(req: HttpRequest) -> impl Responder {
+//    let name = req.match_info().get("name").unwrap_or("World");
+//    format!("Hello {}!", &name)
+//}
+
+// peer enrollment
+#[get("/peer/enroll/")]
+async fn peer_enroll(creds: web::Json<Peer>, data: web::Data<Config>) -> impl Responder {
+    //    let ip = creds.into_inner().ip;
+    //    let peer_id = creds.into_inner().id;
+    HttpResponse::Ok()
 }
 
 pub fn services(cfg: &mut ServiceConfig) {
-    cfg.service(greet);
+    //    cfg.service(greet);
 }

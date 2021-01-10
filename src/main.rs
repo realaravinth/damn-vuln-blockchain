@@ -21,7 +21,7 @@ use damn_vuln_blockchain::blockchain::Chain;
 
 mod routes;
 #[derive(Clone)]
-struct Config {
+pub struct Config {
     pub mode: Mode,
     pub peer_id: String,
     pub port: usize,
@@ -31,7 +31,7 @@ struct Config {
 }
 
 #[derive(Clone)]
-enum Mode {
+pub enum Mode {
     Auditor,
     Attacker,
     Victim,

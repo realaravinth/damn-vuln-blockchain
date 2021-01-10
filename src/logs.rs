@@ -21,23 +21,23 @@ use serde::{Deserialize, Serialize};
 use crate::blockchain::Block;
 use crate::{asset::Asset, utils::*};
 
-#[derive(Display)]
+#[derive(Deserialize, Display)]
 #[display(fmt = "[{}]: {}", timesamp, action)]
-pub struct LoggableAction {
+pub struct Command {
     pub timesamp: String,
     pub action: Action,
 }
 
-impl LoggableAction {
-    pub fn new(action: Action) -> LoggableAction {
-        LoggableAction {
+impl Command {
+    pub fn new(action: Action) -> Command {
+        Command {
             timesamp: get_current_time(),
             action,
         }
     }
 }
 
-#[derive(Display)]
+#[derive(Deserialize, Display)]
 pub enum Action {
     /// Initialize log
     #[display(fmt = "Initializing log...")]
@@ -46,6 +46,10 @@ pub enum Action {
     /// Peer connected event, pass in peer ID
     #[display(fmt = "Peer connected: {}", _0)]
     PeerConnected(Peer),
+
+    /// Peer connected event, pass in peer ID
+    #[display(fmt = "Peer enroll: ID {}", _0.ip)]
+    PeerEnroll(Peer),
 
     /// Miniting asset event, pass in Asset ID
     #[display(fmt = "Minting asset: {}", _0)]
@@ -80,8 +84,11 @@ pub enum Action {
 #[derive(Deserialize, Display, Serialize, Clone, Debug, Default)]
 #[display(fmt = "{}", id)]
 pub struct Peer {
+    /// some random ID
     pub id: String,
-    pub balance: Option<u64>,
+    /// IP must include the port as well
+    pub ip: String,
+    //pub balance: Option<u64>,
 }
 
 #[derive(Deserialize, Display, Serialize, Clone, Debug, Default)]
