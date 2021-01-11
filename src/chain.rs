@@ -28,7 +28,7 @@
 //!
 //! The easiest way to interact with the ledger is via the [Chain] actor.
 //!
-//! # [Chain] supports the followings messages"
+//! # [Chain] supports the followings messages:
 //! - [AddBlock]: adds a [Block] to the blockchain
 //! - [GetLastBlock]: get's the latest [Block] in the blockchain
 //! - [DumpLedger]: dumps the entire ledger
@@ -42,11 +42,19 @@ use crate::block::Block;
 use crate::error::*;
 
 /// Ledger data-structure for the blockchain
+///
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Chain {
     name: String,
     blocks: Vec<Block>,
 }
+
+/// # [Chain] supports the followings messages:
+/// - [AddBlock]: adds a [Block] to the blockchain
+/// - [GetLastBlock]: get's the latest [Block] in the blockchain
+/// - [DumpLedger]: dumps the entire ledger
+/// - [ReplaceChain]: replaces a [Vec<Block>] inside the [Chain] data-structure, useful
+/// when synchronising ledgers
 
 impl Chain {
     /// create new blockchain
@@ -71,16 +79,27 @@ impl Chain {
     /// ChainError::GenesisBlockAdditionError error is returned when
     /// a genesis block is passed. Genesis blocks are only valid when
     /// a chain is created.
-    pub fn add_block(&mut self, block: Block) -> ChainResult<()> {
+    pub fn add_block(&mut self, mut block: Block, network_size: usize) -> ChainResult<usize> {
         if block.is_genesis() {
             return Err(ChainError::GenesisBlockAdditionError);
         // unwrap() is fine below because `block` is not genesis
         } else if block.get_prev().unwrap() != self.get_last_block().get_hash() {
             return Err(ChainError::InconsistentBlockAdition);
         } else {
+            // unwrap is okay here because [Block::genesis()] starts with
+            // serial_no = 1 and every other block that gets added to the chain
+            // will have its serial number set
+            let last_serial_no = self.get_last_block().get_serial_no().unwrap();
+            let serial_no = if last_serial_no == 0 {
+                network_size + 1
+            } else {
+                last_serial_no + 1
+            };
+
+            block.set_serial_no(serial_no);
             self.blocks.push(block);
+            return Ok(serial_no);
         }
-        Ok(())
     }
 
     /// checks if a blockchain is valid by comparing the hash of the previous
@@ -115,9 +134,12 @@ impl Actor for Chain {
 }
 
 /// Add Block
+/// send block and network_size
+/// network_size is required becuase when InitNetwork is called
+/// it sets an offset for Block.serial_no = network_size
 #[derive(Message)]
-#[rtype(result = "ChainResult<()>")]
-pub struct AddBlock(pub Block);
+#[rtype(result = "ChainResult<usize>")]
+pub struct AddBlock(pub Block, pub usize);
 
 /// Get last block
 #[derive(Message)]
@@ -140,7 +162,7 @@ impl Handler<AddBlock> for Chain {
     type Result = MessageResult<AddBlock>;
 
     fn handle(&mut self, msg: AddBlock, _ctx: &mut Self::Context) -> Self::Result {
-        MessageResult(self.add_block(msg.0))
+        MessageResult(self.add_block(msg.0, msg.1))
     }
 }
 
@@ -179,6 +201,11 @@ mod tests {
         use crate::asset::AssetLedger;
 
         let mut chain = Chain::new("test chain");
+        assert_eq!(
+            chain.get_last_block().get_serial_no().unwrap(),
+            0,
+            "genesis serial number properly set"
+        );
 
         let prev = chain.get_last_block();
 
@@ -191,14 +218,15 @@ mod tests {
             .set_prev(&prev)
             .set_asset_id(&asset)
             .build();
+        let network_size = 3;
 
         assert_eq!(
-            chain.add_block(Block::genesis()),
+            chain.add_block(Block::genesis(), network_size),
             Err(ChainError::GenesisBlockAdditionError),
             "Genesis Block addition prevented"
         );
 
-        chain.add_block(block.clone()).unwrap();
+        chain.add_block(block.clone(), network_size).unwrap();
         assert_eq!(
             chain.get_last_block().hash(),
             block.hash(),
@@ -206,7 +234,13 @@ mod tests {
         );
 
         assert_eq!(
-            chain.add_block(block),
+            chain.get_last_block().get_serial_no().unwrap(),
+            4,
+            "serial number properly set"
+        );
+
+        assert_eq!(
+            chain.add_block(block, network_size),
             Err(ChainError::InconsistentBlockAdition),
             "Chain Invalid Prevention works"
         );
@@ -230,16 +264,21 @@ mod tests {
             .set_asset_id(&asset)
             .build();
 
+        let network_size = 3;
+
         // checks if genesis block can be appended to a blockchian
         assert_eq!(
-            chain_addr.send(AddBlock(Block::genesis())).await.unwrap(),
+            chain_addr
+                .send(AddBlock(Block::genesis(), network_size))
+                .await
+                .unwrap(),
             Err(ChainError::GenesisBlockAdditionError),
             "Genesis Block addition prevented"
         );
 
         // checks if valid blocks can be added to blockchian
         chain_addr
-            .send(AddBlock(block.clone()))
+            .send(AddBlock(block.clone(), network_size))
             .await
             .unwrap()
             .unwrap();
@@ -252,7 +291,10 @@ mod tests {
         // checks if invalid block, where block.get_prev() != chain.get_last_block().get_hash()
         // can be added to chain
         assert_eq!(
-            chain_addr.send(AddBlock(block.clone())).await.unwrap(),
+            chain_addr
+                .send(AddBlock(block.clone(), network_size))
+                .await
+                .unwrap(),
             Err(ChainError::InconsistentBlockAdition),
             "Chain Invalid Prevention works"
         );
@@ -290,7 +332,7 @@ mod tests {
         // get parallel_chain's hash
         let parallel_last_block_hash = block.get_hash();
 
-        // craete invalid block chain
+        // create invalid block chain
         let chain_invalid = vec![block.clone(), block.clone()];
         assert_eq!(
             Chain::is_valid(&chain_invalid),
@@ -317,9 +359,11 @@ mod tests {
             .set_asset_id(&asset)
             .build();
 
+        let network_size = 3;
+
         // add new block
         chain_addr
-            .send(AddBlock(new_block.clone()))
+            .send(AddBlock(new_block.clone(), network_size))
             .await
             .unwrap()
             .unwrap();

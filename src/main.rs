@@ -21,6 +21,7 @@ use damn_vuln_blockchain::chain::Chain;
 use damn_vuln_blockchain::discovery::Network;
 
 mod routes;
+mod test;
 
 #[derive(Clone)]
 pub struct Config {

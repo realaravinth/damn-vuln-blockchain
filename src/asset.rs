@@ -23,6 +23,7 @@
 //! - [GetAssetInfo]: Get an asset's info
 //! - [DumpLedger]: Dump the entire asset ledger
 //! - [ReplaceLedger]: Replace the current ledger with another ledger, useful when
+//! - [ChooseValidator]: Choose validator based on coinage
 //! synchronising state
 
 use std::fmt::{Display, Formatter, Result};
@@ -31,7 +32,7 @@ use actix::prelude::*;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-/// [Asest]s are objects that can be transacted on the blockchain
+/// /// [Asset]s are objects that can be transacted on the blockchain
 #[derive(PartialEq, Deserialize, Serialize, Clone, Debug)]
 pub struct Asset {
     name: String,
@@ -39,7 +40,9 @@ pub struct Asset {
     hash: String,
     owner: Option<String>,
     /// The last transaction where this asset was used
-    coinage: Option<String>,
+    /// This value should be the same as [Block.get_serial_no()]
+    /// transaction 0 = never been used
+    last_transaction: usize,
 }
 
 impl Display for Asset {
@@ -72,7 +75,7 @@ impl Asset {
             value,
             owner: None,
             hash,
-            coinage: None,
+            last_transaction: 0,
         }
     }
 
@@ -96,9 +99,9 @@ impl Asset {
         self.owner = Some(owner.into());
     }
 
-    /// set coinage of the asset
-    pub fn set_coinage(&mut self, coinage: &str) {
-        self.coinage = Some(coinage.into());
+    /// set last transaction validated by the asset
+    pub fn set_last_transaction(&mut self, last_transaction: usize) {
+        self.last_transaction = last_transaction;
     }
 
     /// get owner of the asset
@@ -106,19 +109,55 @@ impl Asset {
         &self.owner
     }
 
-    /// get coinage of the asset
-    pub fn get_coinage(&self) -> &Option<String> {
-        &self.coinage
+    /// get last transaction validated by the asset
+    pub fn get_last_transaction(&self) -> usize {
+        self.last_transaction
     }
 }
 
-/// [AssetLedger] represents the world(full network) state of [Assets]
+/// represents the world(full network) state of [Asset]
+/// # [AssetLedger] Messages:
+/// - [ChangeAssetOwner]: Changes an asset's owner
+/// - [InitNetwork]: Initializes assets to peers in the network
+/// - [GetAssetInfo]: Get an asset's info
+/// - [DumpLedger]: Dump the entire asset ledger
+/// - [ReplaceLedger]: Replace the current ledger with another ledger, useful when
+/// - [ChooseValidator]: Choose validator based on coinage
+/// synchronising state
+
 #[derive(Deserialize, Default, Serialize, Clone, Debug)]
 pub struct AssetLedger {
     pub assets: Vec<Asset>,
 }
 
 impl AssetLedger {
+    // get the current number of peers assigned
+    fn peers_currently_assigned(&self) -> usize {
+        let mut peers_currently_assigned: Vec<&str> = Vec::new();
+        self.assets.iter().for_each(|asset| {
+            let owner = match asset.get_owner() {
+                Some(val) => val,
+                None => "Notassigned",
+            };
+            let peer_check =
+                peers_currently_assigned.iter().find(
+                    |peer_id| {
+                        if **peer_id == owner {
+                            true
+                        } else {
+                            false
+                        }
+                    },
+                );
+
+            if peer_check.is_none() {
+                peers_currently_assigned.push(owner);
+            }
+        });
+        peers_currently_assigned.len() - 1
+    }
+
+    /// generates a bunch of fake assets
     pub fn generate() -> AssetLedger {
         let mut ledger = AssetLedger { assets: Vec::new() };
 
@@ -138,6 +177,74 @@ impl AssetLedger {
         ledger.assets.push(Asset::new("Adh Dhayd", 100));
         ledger.assets.push(Asset::new("Abu Dhabi", 100));
         ledger
+    }
+
+    /// chooses validator based on proof of stake
+    pub fn choose_validator(&self) -> Option<String> {
+        // Vec<asset_count, (coinage, str)>
+        // asset_count = directly proportional to stake
+        // coinage(here validated transaction's ID, ID is serial) inversly proportional
+        // no, coinage = getLastTransaction - coinage stored in asset
+        // stake =
+        //
+        // stake = (assets.iter().max()(gets the latest transaction) - asset.get_coinage()(get's
+        // the transaction ID in which the asset was used)) * number of assets
+        // the peer has (https://en.wikipedia.org/wiki/Proof_of_stake#Coin_age-based_selection)
+        //let mut counter: Vec<(usize, (usize, &str))> = Vec::new();
+
+        let mut counter: Vec<(usize, &str)> = Vec::new();
+        // problem statement:
+        // - all assets shuold be accounted for
+        // - coinage must be compared
+        // - and the ownser with the most oldest coinage must be chosen
+
+        // solution:
+        // - sum all coinages of all assets that an ownwer has
+        // - owner with least sum becomes validator
+
+        // get latest transaction
+        // unwrap is fine here because last_transaction is set at initialization
+        let latest_transaction = self
+            .assets
+            .iter()
+            .max_by_key(|asset| asset.get_last_transaction())
+            .unwrap()
+            .get_last_transaction();
+
+        // calculate coinage
+        self.assets.iter().for_each(|asset| {
+            // it's possible that the minted assets are not yet assigned
+            if let Some(owner) = asset.get_owner() {
+                // unwrap is okay jere because get_owner() and get_coinage()
+                // are in sync when retruning None and it's checked for
+                let asset_last_transaction = asset.get_last_transaction();
+                let coinage = latest_transaction - asset_last_transaction;
+
+                // flag to check if an asset has been counted
+                let mut counted_flag = false;
+
+                // checking if owner already exists in counter
+                // datastructure
+                for (coinage_sum, peer_id) in counter.iter_mut() {
+                    if peer_id == owner {
+                        *coinage_sum += coinage;
+                        counted_flag = true;
+                        break;
+                    }
+                }
+                if !counted_flag {
+                    counter.push((coinage, owner));
+                }
+            }
+        });
+
+        // return the minimum value(when coimage_sum minimum, coinage maximum)
+        // present in the counter datastructure.
+        if let Some((_, peer_id)) = counter.iter().max() {
+            Some(peer_id.to_string())
+        } else {
+            None
+        }
     }
 }
 
@@ -186,12 +293,27 @@ pub struct DumpLedger;
 #[rtype(result = "()")]
 pub struct ReplaceLedger(Vec<Asset>);
 
+/// Get asset info of `GetAssetInfo.0`
+#[derive(Message)]
+#[rtype(result = "Option<String>")]
+pub struct ChooseValidator;
+
 impl Handler<InitNetwork> for AssetLedger {
     type Result = MessageResult<InitNetwork>;
 
     fn handle(&mut self, msg: InitNetwork, _ctx: &mut Self::Context) -> Self::Result {
         let length = self.assets.len();
         let mut assets_per_peer = length / msg.network_size;
+
+        //let peers_currently_assigned = self.assets.sort_by(|asset| {
+        //    if let Some(owner) = asset.get_owner() {
+        //        owner
+        //    } else {
+        //        "unowned"
+        //});
+
+        let current_transaction = self.peers_currently_assigned() + 1;
+
         for i in 0..length {
             // unwrap is okay here as I'm only `get_mut()`ing over the
             // the length of `self.assets`
@@ -203,6 +325,8 @@ impl Handler<InitNetwork> for AssetLedger {
                 // assets that already have an owner shouldn't be effected
                 if asset.get_owner().is_none() {
                     asset.set_owner(&msg.peer_id);
+                    // initializing coinage to 0(ready for use)
+                    asset.set_last_transaction(current_transaction);
                     assets_per_peer -= 1;
                 }
             }
@@ -266,6 +390,14 @@ impl Handler<ReplaceLedger> for AssetLedger {
     }
 }
 
+impl Handler<ChooseValidator> for AssetLedger {
+    type Result = MessageResult<ChooseValidator>;
+
+    fn handle(&mut self, _msg: ChooseValidator, _ctx: &mut Self::Context) -> Self::Result {
+        MessageResult(self.choose_validator())
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -281,8 +413,8 @@ mod tests {
         let new_owner = "Me".to_string();
         asset.set_owner(&new_owner);
         assert_eq!(asset.get_owner(), &Some(new_owner));
-        asset.set_coinage("a");
-        assert_eq!(asset.get_coinage().as_ref().unwrap(), "a");
+        asset.set_last_transaction(1);
+        assert_eq!(asset.get_last_transaction(), 1);
     }
 
     #[actix_rt::test]
@@ -378,5 +510,93 @@ mod tests {
             .iter()
             .zip(new_dump.iter())
             .for_each(|(a, b)| assert_eq!(a, b, "AssetLedger replace check"));
+    }
+
+    #[actix_rt::test]
+    async fn choose_validator_works() {
+        let asset_ledger = AssetLedger::generate();
+        let assert_ledger_addr = asset_ledger.clone().start();
+        let network_size: usize = 3;
+
+        let mut msg = InitNetworkBuilder::default()
+            .network_size(network_size)
+            .peer_id("me".into())
+            .build()
+            .unwrap();
+        assert_ledger_addr.send(msg).await.unwrap();
+
+        // testng ChooseValidator
+        assert_eq!(
+            assert_ledger_addr.send(ChooseValidator).await.unwrap(),
+            Some("me".into()),
+            "ChooseValidator works"
+        );
+
+        msg = InitNetworkBuilder::default()
+            .network_size(network_size)
+            .peer_id("you".into())
+            .build()
+            .unwrap();
+
+        assert_ledger_addr.send(msg).await.unwrap();
+
+        // testng ChooseValidator
+        assert_eq!(
+            assert_ledger_addr.send(ChooseValidator).await.unwrap(),
+            Some("me".into()),
+            "ChooseValidator works"
+        );
+
+        msg = InitNetworkBuilder::default()
+            .network_size(network_size)
+            .peer_id("us".into())
+            .build()
+            .unwrap();
+
+        assert_ledger_addr.send(msg).await.unwrap();
+
+        // testng ChooseValidator
+        assert_eq!(
+            assert_ledger_addr.send(ChooseValidator).await.unwrap(),
+            Some("me".into()),
+            "ChooseValidator works"
+        );
+    }
+
+    #[test]
+    fn peers_currently_assigned_works() {
+        let mut assets = AssetLedger::generate();
+        let assets_per_peer = 3;
+        assert_eq!(assets.peers_currently_assigned(), 0);
+        assign_assets(&mut assets, "me", assets_per_peer);
+        assert_eq!(assets.peers_currently_assigned(), 1);
+        assign_assets(&mut assets, "you", assets_per_peer);
+
+        assert_eq!(assets.peers_currently_assigned(), 2);
+
+        assign_assets(&mut assets, "use", assets_per_peer);
+
+        assert_eq!(assets.peers_currently_assigned(), 3);
+    }
+
+    fn assign_assets(assets: &mut AssetLedger, peer_id: &str, change_assets: usize) {
+        let length = assets.assets.len();
+        let mut assets_per_peer = change_assets.clone();
+        for i in 0..length {
+            // unwrap is okay here as I'm only `get_mut()`ing over the
+            // the length of `self.assets`
+            let asset = assets.assets.get_mut(i).unwrap();
+
+            // number of assets that need to be modified are
+            // controlled by this:
+            if assets_per_peer > 0 {
+                // assets that already have an owner shouldn't be effected
+                if asset.get_owner().is_none() {
+                    asset.set_owner(&peer_id);
+                    // initializing coinage to 0(ready for use)
+                    assets_per_peer -= 1;
+                }
+            }
+        }
     }
 }

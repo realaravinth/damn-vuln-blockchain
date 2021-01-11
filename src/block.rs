@@ -118,6 +118,7 @@ impl BlockBuilder {
                 hash,
                 validator: Some(self.validator.to_owned()),
                 timesamp: get_current_time(),
+                serial_no: None,
             }
         }
     }
@@ -138,6 +139,7 @@ pub struct Block {
     rx: Option<String>,
     timesamp: String,
     validator: Option<String>,
+    serial_no: Option<usize>,
 }
 
 impl Block {
@@ -170,6 +172,7 @@ impl Block {
             hash,
             timesamp: get_current_time(),
             validator: None,
+            serial_no: Some(0),
         }
     }
 
@@ -209,6 +212,16 @@ impl Block {
         &self.hash
     }
 
+    /// get serial numbr of block
+    pub fn get_serial_no(&self) -> Option<usize> {
+        self.serial_no
+    }
+
+    /// set serial_no of block
+    pub fn set_serial_no(&mut self, serial_no: usize) {
+        self.serial_no = Some(serial_no);
+    }
+
     /// get receiver involved in the transaction that lead tot
     /// the creation of this block
     pub fn get_rx(&self) -> Option<&String> {
@@ -238,12 +251,13 @@ mod tests {
 
         let prev = Block::genesis();
         assert_eq!(prev.is_genesis(), true, "Genesis block identified");
+        assert_eq!(prev.get_serial_no(), Some(0));
 
         assert_eq!(prev.hash(), prev.get_hash(), "Genesis block hash works");
         let mut assets = AssetLedger::generate();
         let asset = assets.assets.pop().unwrap();
 
-        let block = BlockBuilder::default()
+        let mut block = BlockBuilder::default()
             .set_tx("Me")
             .set_rx("You")
             .set_prev(&prev)
@@ -253,6 +267,11 @@ mod tests {
         assert_eq!(block.is_genesis(), false, "non-genesis block identified");
         assert_eq!(block.get_tx().unwrap(), "Me");
         assert_eq!(block.get_rx().unwrap(), "You");
+        assert_eq!(block.get_serial_no(), None);
+
+        block.set_serial_no(1);
+        assert_eq!(block.get_serial_no(), Some(1));
+
         assert_eq!(
             block.hash(),
             block.get_hash(),
