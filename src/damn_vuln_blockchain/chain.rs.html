@@ -349,6 +349,50 @@
 <span id="346">346</span>
 <span id="347">347</span>
 <span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -380,7 +424,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The easiest way to interact with the ledger is via the [Chain] actor.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! # [Chain] supports the followings messages&quot;</span>
+<span class="doccomment">//! # [Chain] supports the followings messages:</span>
 <span class="doccomment">//! - [AddBlock]: adds a [Block] to the blockchain</span>
 <span class="doccomment">//! - [GetLastBlock]: get&#39;s the latest [Block] in the blockchain</span>
 <span class="doccomment">//! - [DumpLedger]: dumps the entire ledger</span>
@@ -394,11 +438,19 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Ledger data-structure for the blockchain</span>
+<span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Chain</span> {
     <span class="ident">name</span>: <span class="ident">String</span>,
     <span class="ident">blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 }
+
+<span class="doccomment">/// # [Chain] supports the followings messages:</span>
+<span class="doccomment">/// - [AddBlock]: adds a [Block] to the blockchain</span>
+<span class="doccomment">/// - [GetLastBlock]: get&#39;s the latest [Block] in the blockchain</span>
+<span class="doccomment">/// - [DumpLedger]: dumps the entire ledger</span>
+<span class="doccomment">/// - [ReplaceChain]: replaces a [Vec&lt;Block&gt;] inside the [Chain] data-structure, useful</span>
+<span class="doccomment">/// when synchronising ledgers</span>
 
 <span class="kw">impl</span> <span class="ident">Chain</span> {
     <span class="doccomment">/// create new blockchain</span>
@@ -423,16 +475,27 @@
     <span class="doccomment">/// ChainError::GenesisBlockAdditionError error is returned when</span>
     <span class="doccomment">/// a genesis block is passed. Genesis blocks are only valid when</span>
     <span class="doccomment">/// a chain is created.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">Block</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ChainResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">block</span>: <span class="ident">Block</span>, <span class="ident">network_size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ChainResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">block</span>.<span class="ident">is_genesis</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ChainError</span>::<span class="ident">GenesisBlockAdditionError</span>);
         <span class="comment">// unwrap() is fine below because `block` is not genesis</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">block</span>.<span class="ident">get_prev</span>().<span class="ident">unwrap</span>() <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">get_last_block</span>().<span class="ident">get_hash</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ChainError</span>::<span class="ident">InconsistentBlockAdition</span>);
         } <span class="kw">else</span> {
+            <span class="comment">// unwrap is okay here because [Block::genesis()] starts with</span>
+            <span class="comment">// serial_no = 1 and every other block that gets added to the chain</span>
+            <span class="comment">// will have its serial number set</span>
+            <span class="kw">let</span> <span class="ident">last_serial_no</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_last_block</span>().<span class="ident">get_serial_no</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">serial_no</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">last_serial_no</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="ident">network_size</span> <span class="op">+</span> <span class="number">1</span>
+            } <span class="kw">else</span> {
+                <span class="ident">last_serial_no</span> <span class="op">+</span> <span class="number">1</span>
+            };
+
+            <span class="ident">block</span>.<span class="ident">set_serial_no</span>(<span class="ident">serial_no</span>);
             <span class="self">self</span>.<span class="ident">blocks</span>.<span class="ident">push</span>(<span class="ident">block</span>);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">serial_no</span>);
         }
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// checks if a blockchain is valid by comparing the hash of the previous</span>
@@ -467,9 +530,12 @@
 }
 
 <span class="doccomment">/// Add Block</span>
+<span class="doccomment">/// send block and network_size</span>
+<span class="doccomment">/// network_size is required becuase when InitNetwork is called</span>
+<span class="doccomment">/// it sets an offset for Block.serial_no = network_size</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Message</span>)]</span>
-<span class="attribute">#[<span class="ident">rtype</span>(<span class="ident">result</span> <span class="op">=</span> <span class="string">&quot;ChainResult&lt;()&gt;&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AddBlock</span>(<span class="kw">pub</span> <span class="ident">Block</span>);
+<span class="attribute">#[<span class="ident">rtype</span>(<span class="ident">result</span> <span class="op">=</span> <span class="string">&quot;ChainResult&lt;usize&gt;&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AddBlock</span>(<span class="kw">pub</span> <span class="ident">Block</span>, <span class="kw">pub</span> <span class="ident">usize</span>);
 
 <span class="doccomment">/// Get last block</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Message</span>)]</span>
@@ -492,7 +558,7 @@
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">MessageResult</span><span class="op">&lt;</span><span class="ident">AddBlock</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">AddBlock</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">MessageResult</span>(<span class="self">self</span>.<span class="ident">add_block</span>(<span class="ident">msg</span>.<span class="number">0</span>))
+        <span class="ident">MessageResult</span>(<span class="self">self</span>.<span class="ident">add_block</span>(<span class="ident">msg</span>.<span class="number">0</span>, <span class="ident">msg</span>.<span class="number">1</span>))
     }
 }
 
@@ -531,6 +597,11 @@
         <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">asset</span>::<span class="ident">AssetLedger</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chain</span> <span class="op">=</span> <span class="ident">Chain</span>::<span class="ident">new</span>(<span class="string">&quot;test chain&quot;</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">chain</span>.<span class="ident">get_last_block</span>().<span class="ident">get_serial_no</span>().<span class="ident">unwrap</span>(),
+            <span class="number">0</span>,
+            <span class="string">&quot;genesis serial number properly set&quot;</span>
+        );
 
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">chain</span>.<span class="ident">get_last_block</span>();
 
@@ -543,14 +614,15 @@
             .<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">prev</span>)
             .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>)
             .<span class="ident">build</span>();
+        <span class="kw">let</span> <span class="ident">network_size</span> <span class="op">=</span> <span class="number">3</span>;
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">chain</span>.<span class="ident">add_block</span>(<span class="ident">Block</span>::<span class="ident">genesis</span>()),
+            <span class="ident">chain</span>.<span class="ident">add_block</span>(<span class="ident">Block</span>::<span class="ident">genesis</span>(), <span class="ident">network_size</span>),
             <span class="prelude-val">Err</span>(<span class="ident">ChainError</span>::<span class="ident">GenesisBlockAdditionError</span>),
             <span class="string">&quot;Genesis Block addition prevented&quot;</span>
         );
 
-        <span class="ident">chain</span>.<span class="ident">add_block</span>(<span class="ident">block</span>.<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
+        <span class="ident">chain</span>.<span class="ident">add_block</span>(<span class="ident">block</span>.<span class="ident">clone</span>(), <span class="ident">network_size</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">chain</span>.<span class="ident">get_last_block</span>().<span class="ident">hash</span>(),
             <span class="ident">block</span>.<span class="ident">hash</span>(),
@@ -558,7 +630,13 @@
         );
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">chain</span>.<span class="ident">add_block</span>(<span class="ident">block</span>),
+            <span class="ident">chain</span>.<span class="ident">get_last_block</span>().<span class="ident">get_serial_no</span>().<span class="ident">unwrap</span>(),
+            <span class="number">4</span>,
+            <span class="string">&quot;serial number properly set&quot;</span>
+        );
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">chain</span>.<span class="ident">add_block</span>(<span class="ident">block</span>, <span class="ident">network_size</span>),
             <span class="prelude-val">Err</span>(<span class="ident">ChainError</span>::<span class="ident">InconsistentBlockAdition</span>),
             <span class="string">&quot;Chain Invalid Prevention works&quot;</span>
         );
@@ -582,16 +660,21 @@
             .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>)
             .<span class="ident">build</span>();
 
+        <span class="kw">let</span> <span class="ident">network_size</span> <span class="op">=</span> <span class="number">3</span>;
+
         <span class="comment">// checks if genesis block can be appended to a blockchian</span>
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">chain_addr</span>.<span class="ident">send</span>(<span class="ident">AddBlock</span>(<span class="ident">Block</span>::<span class="ident">genesis</span>())).<span class="ident">await</span>.<span class="ident">unwrap</span>(),
+            <span class="ident">chain_addr</span>
+                .<span class="ident">send</span>(<span class="ident">AddBlock</span>(<span class="ident">Block</span>::<span class="ident">genesis</span>(), <span class="ident">network_size</span>))
+                .<span class="ident">await</span>
+                .<span class="ident">unwrap</span>(),
             <span class="prelude-val">Err</span>(<span class="ident">ChainError</span>::<span class="ident">GenesisBlockAdditionError</span>),
             <span class="string">&quot;Genesis Block addition prevented&quot;</span>
         );
 
         <span class="comment">// checks if valid blocks can be added to blockchian</span>
         <span class="ident">chain_addr</span>
-            .<span class="ident">send</span>(<span class="ident">AddBlock</span>(<span class="ident">block</span>.<span class="ident">clone</span>()))
+            .<span class="ident">send</span>(<span class="ident">AddBlock</span>(<span class="ident">block</span>.<span class="ident">clone</span>(), <span class="ident">network_size</span>))
             .<span class="ident">await</span>
             .<span class="ident">unwrap</span>()
             .<span class="ident">unwrap</span>();
@@ -604,7 +687,10 @@
         <span class="comment">// checks if invalid block, where block.get_prev() != chain.get_last_block().get_hash()</span>
         <span class="comment">// can be added to chain</span>
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">chain_addr</span>.<span class="ident">send</span>(<span class="ident">AddBlock</span>(<span class="ident">block</span>.<span class="ident">clone</span>())).<span class="ident">await</span>.<span class="ident">unwrap</span>(),
+            <span class="ident">chain_addr</span>
+                .<span class="ident">send</span>(<span class="ident">AddBlock</span>(<span class="ident">block</span>.<span class="ident">clone</span>(), <span class="ident">network_size</span>))
+                .<span class="ident">await</span>
+                .<span class="ident">unwrap</span>(),
             <span class="prelude-val">Err</span>(<span class="ident">ChainError</span>::<span class="ident">InconsistentBlockAdition</span>),
             <span class="string">&quot;Chain Invalid Prevention works&quot;</span>
         );
@@ -642,7 +728,7 @@
         <span class="comment">// get parallel_chain&#39;s hash</span>
         <span class="kw">let</span> <span class="ident">parallel_last_block_hash</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">get_hash</span>();
 
-        <span class="comment">// craete invalid block chain</span>
+        <span class="comment">// create invalid block chain</span>
         <span class="kw">let</span> <span class="ident">chain_invalid</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">block</span>.<span class="ident">clone</span>(), <span class="ident">block</span>.<span class="ident">clone</span>()];
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">Chain</span>::<span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="ident">chain_invalid</span>),
@@ -669,9 +755,11 @@
             .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>)
             .<span class="ident">build</span>();
 
+        <span class="kw">let</span> <span class="ident">network_size</span> <span class="op">=</span> <span class="number">3</span>;
+
         <span class="comment">// add new block</span>
         <span class="ident">chain_addr</span>
-            .<span class="ident">send</span>(<span class="ident">AddBlock</span>(<span class="ident">new_block</span>.<span class="ident">clone</span>()))
+            .<span class="ident">send</span>(<span class="ident">AddBlock</span>(<span class="ident">new_block</span>.<span class="ident">clone</span>(), <span class="ident">network_size</span>))
             .<span class="ident">await</span>
             .<span class="ident">unwrap</span>()
             .<span class="ident">unwrap</span>();

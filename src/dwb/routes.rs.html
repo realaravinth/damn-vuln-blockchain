@@ -107,91 +107,6 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -218,6 +133,13 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Config</span>;
 <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">logs</span>::<span class="ident">Peer</span>;
+
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
+<span class="kw">struct</span> <span class="ident">BuyAsset</span> {
+    <span class="kw">pub</span> <span class="ident">asset_id</span>: <span class="ident">String</span>,
+}
 
 <span class="comment">//#[post(&quot;/assets/buy&quot;)]</span>
 <span class="comment">//async fn asset_buy(data: web::Data&lt;Config&gt;) -&gt; impl Responder {</span>
@@ -266,123 +188,31 @@
     <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">json</span>(<span class="ident">assets</span>)
 }
 
-<span class="comment">//// buy asset</span>
-<span class="comment">//#[post(&quot;/assets/buy&quot;)]</span>
-<span class="comment">//async fn assets_coinage(data: web::Data&lt;Config&gt;) -&gt; impl Responder {</span>
-<span class="comment">//    let l</span>
-<span class="comment">//}</span>
+<span class="comment">// buy asset</span>
+<span class="attribute">#[<span class="ident">post</span>(<span class="string">&quot;/assets/buy&quot;</span>)]</span>
+<span class="ident">async</span> <span class="kw">fn</span> <span class="ident">assets_coinage</span>(<span class="ident">payload</span>: <span class="ident">web</span>::<span class="ident">Json</span><span class="op">&lt;</span><span class="ident">BuyAsset</span><span class="op">&gt;</span>, <span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
+    <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">asset</span>::{<span class="ident">ChooseValidator</span>, <span class="ident">GetAssetInfo</span>};
+
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">asset_info</span>) <span class="op">=</span> <span class="ident">data</span>
+        .<span class="ident">asset_addr</span>
+        .<span class="ident">send</span>(<span class="ident">GetAssetInfo</span>(<span class="ident">payload</span>.<span class="ident">asset_id</span>.<span class="ident">clone</span>()))
+        .<span class="ident">await</span>
+        .<span class="ident">unwrap</span>()
+    {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">owner</span>) <span class="op">=</span> <span class="ident">asset_info</span>.<span class="ident">get_owner</span>() {
+            <span class="kw">if</span> <span class="ident">owner</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">peer_id</span> {
+                <span class="kw">let</span> <span class="ident">validator</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">asset_addr</span>.<span class="ident">send</span>(<span class="ident">ChooseValidator</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
+            }
+        }
+    };
+
+    <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()
+}
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">services</span>(<span class="ident">cfg</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ServiceConfig</span>) {
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">peer_enroll</span>);
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">peer_dump</span>);
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">assets_dump</span>);
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-
-    <span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">actix_web</span>::{<span class="ident">http</span>::<span class="ident">header</span>, <span class="ident">test</span>, <span class="ident">App</span>};
-
-    <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">asset</span>::{<span class="ident">Asset</span>, <span class="ident">AssetLedger</span>};
-    <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">chain</span>::<span class="ident">Chain</span>;
-    <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">discovery</span>::<span class="ident">Network</span>;
-
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-
-    <span class="kw">fn</span> <span class="ident">get_data</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Config</span> {
-        <span class="kw">let</span> <span class="ident">peer_id</span> <span class="op">=</span> <span class="string">&quot;testnet&quot;</span>;
-
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">Mode</span>::<span class="ident">Auditor</span>;
-        <span class="kw">let</span> <span class="ident">asset_leger</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>();
-        <span class="kw">let</span> <span class="ident">chain_addr</span> <span class="op">=</span> <span class="ident">Chain</span>::<span class="ident">new</span>(<span class="string">&quot;Legit&quot;</span>).<span class="ident">start</span>();
-        <span class="kw">let</span> <span class="ident">tampered_chain_addr</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="ident">network_addr</span> <span class="op">=</span> <span class="ident">Network</span>::<span class="ident">default</span>().<span class="ident">start</span>();
-        <span class="kw">let</span> <span class="ident">init_network_size</span> <span class="op">=</span> <span class="number">2</span>;
-
-        <span class="kw">let</span> <span class="ident">port</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8081</span>; <span class="comment">// dummy</span>
-
-        <span class="ident">Config</span> {
-            <span class="ident">peer_id</span>: <span class="ident">peer_id</span>.<span class="ident">into</span>(),
-            <span class="ident">port</span>,
-            <span class="ident">mode</span>,
-            <span class="comment">//       tampered_asset_addr,</span>
-            <span class="ident">asset_addr</span>: <span class="ident">asset_leger</span>.<span class="ident">start</span>(),
-            <span class="ident">tampered_chain_addr</span>,
-            <span class="ident">chain_addr</span>,
-            <span class="ident">network_addr</span>,
-            <span class="ident">init_network_size</span>,
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">actix_rt</span>::<span class="ident">test</span>]</span>
-    <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">dump_and_enroll_work</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span>
-            <span class="ident">test</span>::<span class="ident">init_service</span>(<span class="ident">App</span>::<span class="ident">new</span>().<span class="ident">configure</span>(<span class="ident">services</span>).<span class="ident">data</span>(<span class="ident">get_data</span>().<span class="ident">clone</span>())).<span class="ident">await</span>;
-        <span class="kw">let</span> <span class="ident">peer</span> <span class="op">=</span> <span class="ident">Peer</span> {
-            <span class="ident">id</span>: <span class="string">&quot;testing&quot;</span>.<span class="ident">into</span>(),
-            <span class="ident">ip</span>: <span class="string">&quot;yolo&quot;</span>.<span class="ident">into</span>(),
-        };
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">peer</span>).<span class="ident">unwrap</span>();
-
-        <span class="comment">// testing peer enrollemnt</span>
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">TestRequest</span>::<span class="ident">post</span>()
-            .<span class="ident">uri</span>(<span class="string">&quot;/peer/enroll&quot;</span>)
-            .<span class="ident">header</span>(<span class="ident">header</span>::<span class="ident">CONTENT_TYPE</span>, <span class="string">&quot;applicatin/json&quot;</span>)
-            .<span class="ident">set_payload</span>(<span class="ident">payload</span>)
-            .<span class="ident">to_request</span>();
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">call_service</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">app</span>, <span class="ident">req</span>).<span class="ident">await</span>;
-
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">status</span>().<span class="ident">is_success</span>(), <span class="string">&quot;peer enrollment is 200&quot;</span>);
-
-        <span class="comment">// testing peer dump by getting the dump and comparing it against</span>
-        <span class="comment">// the peer that was enrolled in the previous test</span>
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">TestRequest</span>::<span class="ident">get</span>()
-            .<span class="ident">uri</span>(<span class="string">&quot;/peer/discover/all&quot;</span>)
-            .<span class="ident">to_request</span>();
-        <span class="ident">resp</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">call_service</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">app</span>, <span class="ident">req</span>).<span class="ident">await</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">status</span>().<span class="ident">is_success</span>(), <span class="string">&quot;peer dump is 200&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">json_resp</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Peer</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">read_body_json</span>(<span class="ident">resp</span>).<span class="ident">await</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">json_resp</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">ip</span>, <span class="ident">peer</span>.<span class="ident">ip</span>, <span class="string">&quot;peer dump works&quot;</span>);
-
-        <span class="comment">// testing if the assets have been assigned to the newly enrolled peer</span>
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">TestRequest</span>::<span class="ident">get</span>().<span class="ident">uri</span>(<span class="string">&quot;/assets/all&quot;</span>).<span class="ident">to_request</span>();
-        <span class="ident">resp</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">call_service</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">app</span>, <span class="ident">req</span>).<span class="ident">await</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">status</span>().<span class="ident">is_success</span>(), <span class="string">&quot;peer dump is 200&quot;</span>);
-        <span class="kw">let</span> <span class="ident">json_resp</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Asset</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">read_body_json</span>(<span class="ident">resp</span>).<span class="ident">await</span>;
-
-        <span class="kw">let</span> <span class="ident">network_size</span> <span class="op">=</span> <span class="ident">get_data</span>().<span class="ident">init_network_size</span>;
-        <span class="comment">//        assert_eq!(json_resp.pop().unwrap().ip, peer.ip, &quot;peer dump works&quot;);</span>
-        <span class="comment">//</span>
-        <span class="comment">// total number of assets:</span>
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">json_resp</span>.<span class="ident">len</span>();
-        <span class="comment">// total number of assets that should be assigned to a new peer</span>
-        <span class="kw">let</span> <span class="ident">assets_per_peer</span> <span class="op">=</span> <span class="ident">length</span> <span class="op">/</span> <span class="ident">network_size</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">asset_ledger_per_peer_state</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="comment">// checking if ownsership is alright</span>
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">json_resp</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="ident">i</span>.<span class="ident">get_owner</span>().<span class="ident">is_some</span>() {
-                <span class="comment">// ownership is verified here if ownder != &quot;testing&quot;, then the</span>
-                <span class="comment">// below statement should panic</span>
-                <span class="macro">assert_eq</span><span class="macro">!</span>(
-                    <span class="ident">i</span>.<span class="ident">get_owner</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
-                    <span class="string">&quot;testing&quot;</span>,
-                    <span class="string">&quot;asset ownder rightly assigned&quot;</span>
-                );
-                <span class="comment">// counting asset to peer &quot;testing&quot;(only testing, see above comment)</span>
-                <span class="ident">asset_ledger_per_peer_state</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            }
-        }
-
-        <span class="comment">// checking assets for over/under assignment to new peers</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">assets_per_peer</span>, <span class="ident">asset_ledger_per_peer_state</span>,
-            <span class="string">&quot;assets per peer satisfied, no over allocation, no under allocation&quot;</span>
-        );
-    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "dwb";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

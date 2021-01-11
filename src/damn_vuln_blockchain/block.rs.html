@@ -289,6 +289,25 @@
 <span id="286">286</span>
 <span id="287">287</span>
 <span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -410,6 +429,7 @@
                 <span class="ident">hash</span>,
                 <span class="ident">validator</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">validator</span>.<span class="ident">to_owned</span>()),
                 <span class="ident">timesamp</span>: <span class="ident">get_current_time</span>(),
+                <span class="ident">serial_no</span>: <span class="prelude-val">None</span>,
             }
         }
     }
@@ -430,6 +450,7 @@
     <span class="ident">rx</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="ident">timesamp</span>: <span class="ident">String</span>,
     <span class="ident">validator</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="ident">serial_no</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Block</span> {
@@ -462,6 +483,7 @@
             <span class="ident">hash</span>,
             <span class="ident">timesamp</span>: <span class="ident">get_current_time</span>(),
             <span class="ident">validator</span>: <span class="prelude-val">None</span>,
+            <span class="ident">serial_no</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
         }
     }
 
@@ -501,6 +523,16 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">hash</span>
     }
 
+    <span class="doccomment">/// get serial numbr of block</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_serial_no</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">serial_no</span>
+    }
+
+    <span class="doccomment">/// set serial_no of block</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_serial_no</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">serial_no</span>: <span class="ident">usize</span>) {
+        <span class="self">self</span>.<span class="ident">serial_no</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">serial_no</span>);
+    }
+
     <span class="doccomment">/// get receiver involved in the transaction that lead tot</span>
     <span class="doccomment">/// the creation of this block</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_rx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">String</span><span class="op">&gt;</span> {
@@ -530,12 +562,13 @@
 
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">Block</span>::<span class="ident">genesis</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">prev</span>.<span class="ident">is_genesis</span>(), <span class="bool-val">true</span>, <span class="string">&quot;Genesis block identified&quot;</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">prev</span>.<span class="ident">get_serial_no</span>(), <span class="prelude-val">Some</span>(<span class="number">0</span>));
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">prev</span>.<span class="ident">hash</span>(), <span class="ident">prev</span>.<span class="ident">get_hash</span>(), <span class="string">&quot;Genesis block hash works&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>();
         <span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">assets</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>()
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>()
             .<span class="ident">set_tx</span>(<span class="string">&quot;Me&quot;</span>)
             .<span class="ident">set_rx</span>(<span class="string">&quot;You&quot;</span>)
             .<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">prev</span>)
@@ -545,6 +578,11 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">is_genesis</span>(), <span class="bool-val">false</span>, <span class="string">&quot;non-genesis block identified&quot;</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">get_tx</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;Me&quot;</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">get_rx</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;You&quot;</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">get_serial_no</span>(), <span class="prelude-val">None</span>);
+
+        <span class="ident">block</span>.<span class="ident">set_serial_no</span>(<span class="number">1</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">get_serial_no</span>(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">block</span>.<span class="ident">hash</span>(),
             <span class="ident">block</span>.<span class="ident">get_hash</span>(),
