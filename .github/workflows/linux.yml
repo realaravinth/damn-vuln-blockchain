@@ -37,11 +37,15 @@ jobs:
           profile: minimal
           override: true
 
-      - name: check build
+      - name: build
         uses: actions-rs/cargo@v1
         with:
-          command: check
+          command: build
           args: --all --bins --examples --tests
+
+      - name: setup dwb network for tests
+        run: ./network.sh launch
+
 
       - name: tests
         uses: actions-rs/cargo@v1
@@ -50,6 +54,12 @@ jobs:
           command: test
           args: --all --all-features --no-fail-fast
 
+      - name: kill dwb network
+        run: ./network.sh kill
+
+      - name: setup dwb network for tests
+        run: ./network.sh launch
+
       - name: Generate coverage file
         if: matrix.version == 'stable' && (github.ref == 'refs/heads/master' || github.event_name == 'pull_request')
         uses: actions-rs/tarpaulin@v0.1
@@ -57,13 +67,16 @@ jobs:
           version: '0.15.0'
           args: '--exclude-files src/schema.rs src/errors.rs  -t 1200'
 
+      - name: kill dwb network
+        run: ./network.sh kill
+
       - name: Upload to Codecov
         if: matrix.version == 'stable' && (github.ref == 'refs/heads/master' || github.event_name == 'pull_request')
         uses: codecov/codecov-action@v1
         with:
           file: cobertura.xml
 
-      - name: Upload documentation
+      - name: generate documentation
         if: matrix.version == 'stable' && (github.repository == 'realaravinth/damn-vuln-blockchain')
         uses: actions-rs/cargo@v1
         with:

@@ -23,27 +23,26 @@ mod tests {
 
     use damn_vuln_blockchain::asset::{Asset, AssetLedger};
     use damn_vuln_blockchain::chain::Chain;
+    use damn_vuln_blockchain::config::{Config, Mode};
     use damn_vuln_blockchain::discovery::Network;
     use damn_vuln_blockchain::logs::Peer;
 
     use crate::routes::services;
-    use crate::Config;
 
     fn get_data() -> Config {
         let peer_id = "testnet";
 
-        let mode = crate::Mode::Auditor;
+        let mode = Mode::Auditor;
         let asset_leger = AssetLedger::generate();
         let chain_addr = Chain::new("Legit").start();
         let tampered_chain_addr = None;
         let network_addr = Network::default().start();
         let init_network_size = 2;
-
-        let port: usize = 8081; // dummy
+        let public_ip = "aaa".into();
+        let auditor_node = "aaa".into();
 
         Config {
             peer_id: peer_id.into(),
-            port,
             mode,
             //       tampered_asset_addr,
             asset_addr: asset_leger.start(),
@@ -51,6 +50,8 @@ mod tests {
             chain_addr,
             network_addr,
             init_network_size,
+            public_ip,
+            auditor_node,
         }
     }
 

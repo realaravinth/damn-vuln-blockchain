@@ -21,15 +21,9 @@ use actix_web::{
     HttpResponse, Responder,
 };
 
-use crate::Config;
+use damn_vuln_blockchain::config::Config;
 use damn_vuln_blockchain::logs::Peer;
-
-use serde::{Deserialize, Serialize};
-
-#[derive(Deserialize, Serialize)]
-struct BuyAsset {
-    pub asset_id: String,
-}
+use damn_vuln_blockchain::logs::SellAsset;
 
 //#[post("/assets/buy")]
 //async fn asset_buy(data: web::Data<Config>) -> impl Responder {
@@ -80,7 +74,7 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
 
 // buy asset
 #[post("/assets/sell")]
-async fn sell(payload: web::Json<BuyAsset>, data: web::Data<Config>) -> impl Responder {
+async fn sell(payload: web::Json<SellAsset>, data: web::Data<Config>) -> impl Responder {
     use damn_vuln_blockchain::asset::{ChooseValidator, GetAssetInfo};
     use damn_vuln_blockchain::discovery::GetPeer;
 

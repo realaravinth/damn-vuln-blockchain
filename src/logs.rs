@@ -97,3 +97,8 @@ pub struct Gossip {
     pub tx: Peer,
     pub rx: Peer,
 }
+
+#[derive(Deserialize, Serialize)]
+pub struct SellAsset {
+    pub asset_id: String,
+}

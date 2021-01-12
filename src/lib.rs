@@ -57,9 +57,11 @@
 //! }
 //! ```
 
+pub mod api;
 pub mod asset;
 pub mod block;
 pub mod chain;
+pub mod config;
 pub mod discovery;
 pub mod error;
 pub mod logs;

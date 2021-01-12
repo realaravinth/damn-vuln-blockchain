@@ -291,7 +291,7 @@ pub struct DumpLedger;
 /// Useful when forking
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct ReplaceLedger(Vec<Asset>);
+pub struct ReplaceLedger(pub Vec<Asset>);
 
 /// Get asset info of `GetAssetInfo.0`
 #[derive(Message)]
@@ -524,7 +524,6 @@ mod tests {
             .build()
             .unwrap();
         assert_ledger_addr.send(msg).await.unwrap();
-
         // testng ChooseValidator
         assert_eq!(
             assert_ledger_addr.send(ChooseValidator).await.unwrap(),
@@ -537,9 +536,7 @@ mod tests {
             .peer_id("you".into())
             .build()
             .unwrap();
-
         assert_ledger_addr.send(msg).await.unwrap();
-
         // testng ChooseValidator
         assert_eq!(
             assert_ledger_addr.send(ChooseValidator).await.unwrap(),
@@ -552,9 +549,7 @@ mod tests {
             .peer_id("us".into())
             .build()
             .unwrap();
-
         assert_ledger_addr.send(msg).await.unwrap();
-
         // testng ChooseValidator
         assert_eq!(
             assert_ledger_addr.send(ChooseValidator).await.unwrap(),
