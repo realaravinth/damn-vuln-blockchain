@@ -35,7 +35,7 @@ jobs:
         with:
           toolchain: ${{ matrix.version }}-x86_64-unknown-linux-gnu
           profile: minimal
-          override: true
+          override: false
 
       - name: build
         uses: actions-rs/cargo@v1
@@ -58,6 +58,7 @@ jobs:
         run: ./network.sh kill
 
       - name: setup dwb network for tests
+        if: matrix.version == 'stable' && (github.ref == 'refs/heads/master' || github.event_name == 'pull_request')
         run: ./network.sh launch
 
       - name: Generate coverage file
@@ -68,6 +69,7 @@ jobs:
           args: '--exclude-files src/schema.rs src/errors.rs  -t 1200'
 
       - name: kill dwb network
+        if: matrix.version == 'stable' && (github.ref == 'refs/heads/master' || github.event_name == 'pull_request')
         run: ./network.sh kill
 
       - name: Upload to Codecov

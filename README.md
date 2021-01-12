@@ -54,6 +54,9 @@ mint. It should be spawned first.
 This peer will be configured to take itself down when an attack command
 is issued.
 
+#### - Normal:
+No special abilities, just an other node in the network
+
 
 #### `dwb` usage:
 
@@ -63,21 +66,33 @@ Aravinth Manivannan <realaravinth@batsense.net>
 A bloody vulnerable blockchain implementation
 
 USAGE:
-    dwb --discovery <discovery> --mode <mode> --id <peer_id> --port <port>
+    dwb --auditor <auditor> --mode <mode> --network-size <network_size> --name <peer_id> --public-ip <public_ip>
 
 FLAGS:
     -h, --help       Prints help information
     -V, --version    Prints version information
 
 OPTIONS:
-    -d, --discovery <discovery>    address of discovery node
-    -m, --mode <mode>              available modes:
-                                   	auditor
-                                   	attacker
-                                   	victim
-    -i, --id <peer_id>             set peer ID
-    -p, --port <port>              set port to listen on
+    -a, --auditor <auditor>              address of auditor node
+    -m, --mode <mode>                    available modes:
+                                         	auditor
+                                         	normal
+                                         	attacker
+                                         	victim
+    -s, --network-size <network_size>    set intial network size
+    -n, --name <peer_id>                 set peer name
+    -i, --public-ip <public_ip>          set public IP
+```
 
+
+#### Spinning up a cluster:
+The easiest way to spin up a cluster locally is using `./network.sh`.
+
+```
+USAGE:
+	./network.sh
+		launch   launches network
+		kill     kills network
 ```
 
 ### Attack Scenario:
