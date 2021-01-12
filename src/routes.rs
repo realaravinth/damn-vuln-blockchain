@@ -79,9 +79,10 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
 }
 
 // buy asset
-#[post("/assets/buy")]
-async fn assets_coinage(payload: web::Json<BuyAsset>, data: web::Data<Config>) -> impl Responder {
+#[post("/assets/sell")]
+async fn sell(payload: web::Json<BuyAsset>, data: web::Data<Config>) -> impl Responder {
     use damn_vuln_blockchain::asset::{ChooseValidator, GetAssetInfo};
+    use damn_vuln_blockchain::discovery::GetPeer;
 
     if let Some(asset_info) = data
         .asset_addr
@@ -91,7 +92,23 @@ async fn assets_coinage(payload: web::Json<BuyAsset>, data: web::Data<Config>) -
     {
         if let Some(owner) = asset_info.get_owner() {
             if owner != &data.peer_id {
-                let validator = data.asset_addr.send(ChooseValidator).await.unwrap();
+                let validator = data
+                    .asset_addr
+                    .send(ChooseValidator)
+                    .await
+                    .unwrap()
+                    // unwrap below should be taken care of
+                    // None occurs when there are no peers in
+                    // the network
+                    .unwrap();
+                let validator_peer = data
+                    .network_addr
+                    .send(GetPeer(validator))
+                    .await
+                    .unwrap()
+                    .unwrap();
+                //TODO:
+                // 1. send peer the transaction request
             }
         }
     };
