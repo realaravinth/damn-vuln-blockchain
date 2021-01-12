@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Mode",""]],"fn":[["cli",""],["get_json_err",""],["main",""]],"mod":[["routes",""],["test",""]],"struct":[["Config",""]]});
+initSidebarItems({"fn":[["get_json_err",""],["main",""]],"mod":[["routes",""]]});
