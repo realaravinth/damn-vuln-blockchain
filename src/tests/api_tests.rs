@@ -19,10 +19,15 @@
 mod tests {
 
     use damn_vuln_blockchain::api::Client;
+    use damn_vuln_blockchain::asset::DumpLedger;
     use damn_vuln_blockchain::discovery::GetPeer;
 
     use crate::tests::helpers::*;
 
+    // testing api client wrappers from
+    // damn_vuln_blockchain::api::client::Client
+    // it's kinda nasty as it's both integration
+    // and whitebox at the same time but it works
     #[actix_rt::test]
     async fn dump_and_enroll_work() {
         let config = generate_test_config();
@@ -31,6 +36,7 @@ mod tests {
         client.peer_enroll(&config).await;
         client.peer_discovery(&config).await;
 
+        // checking if peer enrollment works
         assert_eq!(
             config
                 .network_addr
@@ -43,44 +49,36 @@ mod tests {
             "peer_enroll and peer_discovery works"
         );
 
-        //        resp = test::call_service(&mut app, req).await;
-        //        assert!(resp.status().is_success(), "peer dump is 200");
-        //        let mut json_resp: Vec<Peer> = test::read_body_json(resp).await;
-        //        assert_eq!(json_resp.pop().unwrap().ip, peer.ip, "peer dump works");
-        //
-        //        // testing if the assets have been assigned to the newly enrolled peer
-        //        let req = test::TestRequest::get().uri("/assets/all").to_request();
-        //        resp = test::call_service(&mut app, req).await;
-        //        assert!(resp.status().is_success(), "peer dump is 200");
-        //        let json_resp: Vec<Asset> = test::read_body_json(resp).await;
-        //
-        //        let network_size = get_data().init_network_size;
-        //        // total number of assets:
-        //        let length = json_resp.len();
-        //        // total number of assets that should be assigned to a new peer
-        //        let assets_per_peer = length / network_size;
-        //
-        //        let mut asset_ledger_per_peer_state = 0;
-        //
-        //        // checking if ownsership is alright
-        //        for i in json_resp.iter() {
-        //            if i.get_owner().is_some() {
-        //                // ownership is verified here if ownder != "testing", then the
-        //                // below statement should panic
-        //                assert_eq!(
-        //                    i.get_owner().as_ref().unwrap(),
-        //                    "testing",
-        //                    "asset ownder rightly assigned"
-        //                );
-        //                // counting asset to peer "testing"(only testing, see above comment)
-        //                asset_ledger_per_peer_state += 1;
-        //            }
-        //        }
-        //
-        //        // checking assets for over/under assignment to new peers
-        //        assert_eq!(
-        //            assets_per_peer, asset_ledger_per_peer_state,
-        //            "assets per peer satisfied, no over allocation, no under allocation"
-        //        );
+        // testing get_all_assets
+        client.get_all_assets(&config).await;
+        // getting dump from internal actor
+        let dump = config.asset_addr.send(DumpLedger).await.unwrap();
+
+        // calculating assets per peer
+        let length = dump.len();
+        let assets_per_peer = length / config.init_network_size;
+
+        // flags and stuff for tests
+        let mut asset_ledger_per_peer_state = 0;
+        let mut this_peer_got_assets_flag = false;
+
+        // iterating through dump and checking if
+        // this peer has received its rightful share
+        // of assets
+        for i in dump.iter() {
+            if i.get_owner().is_some() {
+                // ownership is verified here if ownder != "me", then the
+                // below statement should panic
+                if i.get_owner().as_ref().unwrap() == &config.peer_id {
+                    this_peer_got_assets_flag = true;
+                    asset_ledger_per_peer_state += 1;
+                }
+            }
+        }
+        assert!(this_peer_got_assets_flag, "get_all_assets works");
+        assert_eq!(
+            assets_per_peer, asset_ledger_per_peer_state,
+            "assets per peer satisfied, no over allocation, no under allocation"
+        );
     }
 }
