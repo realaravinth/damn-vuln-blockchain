@@ -24,7 +24,6 @@ pub mod api_tests;
 #[cfg(test)]
 pub mod helpers {
     use actix::prelude::*;
-    use damn_vuln_blockchain::api::Client;
     use damn_vuln_blockchain::asset::AssetLedger;
     use damn_vuln_blockchain::chain::Chain;
     use damn_vuln_blockchain::config::{Config, Mode};

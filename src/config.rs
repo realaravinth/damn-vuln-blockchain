@@ -17,10 +17,10 @@
 use actix::prelude::*;
 use log::info;
 
-use crate::api::Client;
 use crate::asset::AssetLedger;
 use crate::chain::Chain;
 use crate::discovery::Network;
+use crate::Client;
 
 #[derive(Clone)]
 pub struct Config {

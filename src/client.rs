@@ -14,6 +14,7 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+//! Client wrapper for p2p communication
 
 use actix_web::client::Client as awc;
 use log::{debug, info};
@@ -22,21 +23,21 @@ use crate::asset::{Asset, ReplaceLedger};
 use crate::config::Config;
 use crate::discovery::AddPeer;
 use crate::logs::Peer;
-use crate::logs::SellAsset;
+//use crate::logs::SellAsset;
 
+// NOTE these URLs are subject to change
+// if tests are failing, come check the URLs
+// here
 const PEER_ENROLL: &str = "/peer/enroll";
 const PEER_DISCOVER_ALL: &str = "/peer/discover/all";
 const GET_ALL_ASSETS: &str = "/assets/all";
 const SELL_ASSET: &str = "/assets/sell";
 
+/// Client wrapper for p2p communication
 #[derive(Clone, Default)]
 pub struct Client {
     pub client: awc,
 }
-
-//impl Actor for Network {
-//    type Context = Context<Self>;
-//}
 
 impl Client {
     /// enrolls peer with the auditor enode
@@ -60,6 +61,8 @@ impl Client {
 
     /// gets list of peers from auditor, should be called periodically
     pub async fn peer_discovery(&mut self, config: &Config) {
+        // gets peers from Auditor and replaces peers
+        // in local Network
         let addr = Client::make_uri(&config.auditor_node, PEER_DISCOVER_ALL);
         loop {
             if let Ok(mut val) = self.client.get(&addr).send().await {
@@ -77,6 +80,8 @@ impl Client {
 
     /// gets asset ledger from auditor node, should be called periodically
     pub async fn get_all_assets(&mut self, config: &Config) {
+        // gets assets from Auditor and replaces assets
+        // in local AssetsLedger
         let addr = Client::make_uri(&config.auditor_node, GET_ALL_ASSETS);
         loop {
             if let Ok(mut val) = self.client.get(&addr).send().await {

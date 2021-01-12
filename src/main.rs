@@ -25,8 +25,8 @@ async fn main() -> std::io::Result<()> {
         middleware::{normalize, Compress, Logger, NormalizePath},
         App, HttpServer,
     };
-    use damn_vuln_blockchain::api::Client;
-    use damn_vuln_blockchain::config::Config;
+    use damn_vuln_blockchain::Client;
+    use damn_vuln_blockchain::Config;
 
     pretty_env_logger::init();
 

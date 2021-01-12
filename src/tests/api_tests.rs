@@ -18,9 +18,9 @@
 #[cfg(test)]
 mod tests {
 
-    use damn_vuln_blockchain::api::Client;
     use damn_vuln_blockchain::asset::DumpLedger;
     use damn_vuln_blockchain::discovery::GetPeer;
+    use damn_vuln_blockchain::Client;
 
     use crate::tests::helpers::*;
 

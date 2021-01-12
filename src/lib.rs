@@ -14,7 +14,9 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/realaravinth/damn-vuln-blockchain/master/assets/block.svg"
+)]
 //! This is a test blockchain that I build for fun and as the name
 //! suggests, **it is bloody vulnerable.**
 //!
@@ -57,12 +59,15 @@
 //! }
 //! ```
 
-pub mod api;
 pub mod asset;
 pub mod block;
 pub mod chain;
+pub mod client;
 pub mod config;
 pub mod discovery;
 pub mod error;
 pub mod logs;
 mod utils;
+
+pub use client::Client;
+pub use config::Config;
