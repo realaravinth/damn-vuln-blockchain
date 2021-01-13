@@ -22,7 +22,7 @@ use actix_web::{
 };
 
 use damn_vuln_blockchain::config::Config;
-use damn_vuln_blockchain::payload::*;
+use damn_vuln_blockchain::payload::{GetStake, Peer, SellAsset};
 
 //#[post("/assets/buy")]
 //async fn asset_buy(data: web::Data<Config>) -> impl Responder {
@@ -74,7 +74,10 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
 // get stake for a particular block ID
 #[post("/stake")]
 async fn get_stake(payload: web::Json<GetStake>, data: web::Data<Config>) -> impl Responder {
-    let stake = data.asset_addr.send(payload.into_inner()).await.unwrap();
+    use damn_vuln_blockchain::asset::GetStake as ActorGetStake;
+    let msg: ActorGetStake = payload.into_inner().into();
+
+    let stake = data.asset_addr.send(msg).await.unwrap();
 
     HttpResponse::Ok().json(stake)
 }

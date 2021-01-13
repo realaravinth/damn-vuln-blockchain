@@ -55,50 +55,48 @@ mod tests {
         }
     }
 
-    #[actix_rt::test]
-    async fn get_stake_route_works() {
-        use damn_vuln_blockchain::asset::{
-            GetPeerAssets, GetStake, InitNetworkBuilder, SetStakeBuilder, Stake,
-        };
-        let config = get_data();
-        let msg = InitNetworkBuilder::default()
-            .network_size(config.init_network_size)
-            .peer_id(config.peer_id.clone())
-            .build()
-            .unwrap();
+    // #[actix_rt::test]
+    // async fn get_stake_route_works() {
+    //     use damn_vuln_blockchain::asset::{
+    //         GetPeerAssets, GetStake, InitNetworkBuilder, SetStakeBuilder, Stake,
+    //     };
+    //     let config = get_data();
+    //     let msg = InitNetworkBuilder::default()
+    //         .network_size(config.init_network_size)
+    //         .peer_id(config.peer_id.clone())
+    //         .build()
+    //         .unwrap();
 
-        config.asset_addr.send(msg).await.unwrap();
-        let assets_for_me = config
-            .asset_addr
-            .send(GetPeerAssets(config.peer_id.clone()))
-            .await
-            .unwrap();
+    //     config.asset_addr.send(msg).await.unwrap();
+    //     let assets_for_me = config
+    //         .asset_addr
+    //         .send(GetPeerAssets(config.peer_id.clone()))
+    //         .await
+    //         .unwrap();
 
-        let mut app = test::init_service(App::new().configure(services).data(config.clone())).await;
+    //     let mut app = test::init_service(App::new().configure(services).data(config.clone())).await;
 
-        // checking default stake
-        let mut default_stake_id: Vec<String> = Vec::new();
-        assets_for_me.iter().for_each(|asset| {
-            default_stake_id.push(asset.get_hash().to_owned());
-        });
+    //     let mut default_stake_id: Vec<String> = Vec::new();
+    //     assets_for_me.iter().for_each(|asset| {
+    //         default_stake_id.push(asset.get_hash().to_owned());
+    //     });
 
-        // let stake = asset_addr.send(GetStake(4)).await.unwrap();
-        // testing get stake
-        let payload = serde_json::to_string(&GetStake(5)).unwrap();
-        let req = test::TestRequest::post()
-            .uri("/stake")
-            .header(header::CONTENT_TYPE, "applicatin/json")
-            .set_payload(payload)
-            .to_request();
+    //     // testing get stake
+    //     let payload = serde_json::to_string(&GetStake(5)).unwrap();
+    //     let req = test::TestRequest::post()
+    //         .uri("/stake")
+    //         .header(header::CONTENT_TYPE, "applicatin/json")
+    //         .set_payload(payload)
+    //         .to_request();
 
-        let resp = test::call_service(&mut app, req).await;
+    //     let resp = test::call_service(&mut app, req).await;
 
-        assert!(resp.status().is_success(), "get  stake is 200");
-        let stake: Stake = test::read_body_json(resp).await;
+    //     assert!(resp.status().is_success(), "get  stake is 200");
+    //     let stake: Stake = test::read_body_json(resp).await;
 
-        assert_eq!(stake.block_id, 5);
-        assert_eq!(stake.stake, default_stake_id);
-    }
+    //     assert_eq!(stake.block_id, 5);
+    //     assert_eq!(stake.stake, default_stake_id);
+    // }
 
     #[actix_rt::test]
     async fn dump_and_enroll_work() {

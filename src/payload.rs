@@ -45,4 +45,8 @@ pub struct SellAsset {
     pub use_stake: bool,
 }
 
-pub use crate::asset::GetStake;
+/// Get stake payload
+#[derive(Deserialize, Serialize)]
+pub struct GetStake {
+    pub block_id: usize,
+}

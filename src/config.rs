@@ -114,7 +114,7 @@ impl Config {
         let public_ip = matches.value_of("public_ip").expect("Set public IP");
 
         let mode;
-        let mut asset_leger = AssetLedger::default();
+        let mut asset_leger = AssetLedger::new(&peer_id);
         let chain_addr = Chain::new("Legit").start();
         let tampered_chain_addr = None;
         let network_addr = Network::default().start();

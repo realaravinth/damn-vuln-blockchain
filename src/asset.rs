@@ -36,6 +36,8 @@ use derive_builder::Builder;
 use log::debug;
 use serde::{Deserialize, Serialize};
 
+use crate::payload::GetStake as PayloadGetStake;
+
 /// /// [Asset]s are objects that can be transacted on the blockchain
 #[derive(PartialEq, Deserialize, Serialize, Clone, Debug)]
 pub struct Asset {
@@ -131,7 +133,7 @@ impl Asset {
 /// - [SetStake]: Set stake for a block creation
 /// - [GetStake]: Get stake for a block  ID
 /// synchronising state
-#[derive(Deserialize, Default, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Default, Clone, Debug)]
 pub struct AssetLedger {
     pub assets: Vec<Asset>,
     pub stake: Vec<Stake>,
@@ -150,6 +152,14 @@ pub struct Stake {
 }
 
 impl AssetLedger {
+    pub fn new(peer_id: &str) -> Self {
+        AssetLedger {
+            assets: Vec::default(),
+            stake: Vec::default(),
+            peer_id: peer_id.into(),
+        }
+    }
+
     fn get_peer_assets(&self, peer_id: &str) -> Vec<Asset> {
         let mut payload: Vec<Asset> = Vec::new();
         self.assets.iter().for_each(|asset| {
@@ -199,6 +209,7 @@ impl AssetLedger {
 
     /// generates a bunch of fake assets
     pub fn generate(peer_id: &str) -> AssetLedger {
+        debug!("Gerating assets");
         let mut ledger = AssetLedger {
             assets: Vec::new(),
             stake: Vec::new(),
@@ -361,6 +372,12 @@ pub struct SetStake {
 #[rtype(result = "Stake")]
 pub struct GetStake(pub usize);
 
+impl From<PayloadGetStake> for GetStake {
+    fn from(msg: PayloadGetStake) -> Self {
+        GetStake(msg.block_id)
+    }
+}
+
 impl Handler<InitNetwork> for AssetLedger {
     type Result = MessageResult<InitNetwork>;
 
@@ -450,6 +467,7 @@ impl Handler<ReplaceLedger> for AssetLedger {
 
     fn handle(&mut self, msg: ReplaceLedger, _ctx: &mut Self::Context) -> Self::Result {
         self.assets = msg.0;
+        debug!("Replaced AssetLedger for peer: {}", &self.peer_id);
     }
 }
 

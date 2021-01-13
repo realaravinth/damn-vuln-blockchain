@@ -18,8 +18,9 @@
 
 use actix_web::client::Client as awc;
 use log::{debug, info};
+use serde::{Deserialize, Serialize};
 
-use crate::asset::{Asset, ReplaceLedger};
+use crate::asset::{Asset, ReplaceLedger, Stake};
 use crate::config::Config;
 use crate::discovery::AddPeer;
 use crate::payload::Peer;
@@ -40,6 +41,13 @@ pub struct Client {
     pub client: awc,
 }
 
+/// Get stake using client
+#[derive(Deserialize, Serialize)]
+pub struct GetStake {
+    pub block_id: usize,
+    pub peer_id: String,
+}
+
 impl Client {
     /// enrolls peer with the auditor enode
     pub async fn peer_enroll(&mut self, config: &Config) {
@@ -54,6 +62,37 @@ impl Client {
             .send_json(&peer)
             .await
             .unwrap();
+    }
+
+    /// get stake for a block
+    pub async fn get_stake(&mut self, peer: GetStake, config: &Config) -> Stake {
+        use crate::discovery::GetPeer;
+        use crate::payload::GetStake as PayloadGetStake;
+
+        let payload = PayloadGetStake {
+            block_id: peer.block_id,
+        };
+
+        let peer_addr = config
+            .network_addr
+            .send(GetPeer(peer.peer_id))
+            .await
+            .unwrap()
+            .unwrap();
+        let addr = Client::make_uri(&peer_addr.ip, GET_STAKE);
+        loop {
+            if let Ok(mut val) = self
+                .client
+                .post(&addr)
+                .header("content-type", "application/json")
+                .send_json(&payload)
+                .await
+            {
+                if let Ok(stake) = val.json().await {
+                    return stake;
+                }
+            }
+        }
     }
 
     fn make_uri(address: &str, path: &str) -> String {
