@@ -83,7 +83,7 @@ mod tests {
     }
 
     #[actix_rt::test]
-    async fn get_stake() {
+    async fn get_stake_victim_peer() {
         use damn_vuln_blockchain::asset::{
             GetPeerAssets, InitNetworkBuilder, SetStakeBuilder, Stake,
         };
@@ -93,13 +93,44 @@ mod tests {
         let config = generate_test_config();
         config.bootstrap().await;
 
-        //        let msg = InitNetworkBuilder::default()
-        //            .network_size(config.init_network_size)
-        //            .peer_id(config.peer_id.clone())
-        //            .build()
-        //            .unwrap();
-        //
-        // config.asset_addr.send(msg).await.unwrap();
+        // testing victim client
+        let stake_peer_id = "victim.batsense.net";
+        let assets_for_me = config
+            .asset_addr
+            .send(GetPeerAssets(stake_peer_id.to_owned()))
+            .await
+            .unwrap();
+
+        let mut default_stake_id: Vec<String> = Vec::new();
+        assets_for_me.iter().for_each(|asset| {
+            default_stake_id.push(asset.get_hash().to_owned());
+        });
+
+        let mut client = Client::default();
+        let block_id = 9999;
+
+        let client_msg = GetStake {
+            block_id,
+            peer_id: stake_peer_id.into(),
+        };
+
+        let stake: Stake = client.get_stake(client_msg, &config).await;
+        assert_eq!(stake.block_id, block_id);
+        assert_eq!(stake.stake, default_stake_id);
+    }
+
+    #[actix_rt::test]
+    async fn get_stake_attacker_peer() {
+        use damn_vuln_blockchain::asset::{
+            GetPeerAssets, InitNetworkBuilder, SetStakeBuilder, Stake,
+        };
+
+        use damn_vuln_blockchain::client::GetStake;
+
+        let config = generate_test_config();
+        config.bootstrap().await;
+
+        // testing attakcing peer
         let stake_peer_id = "attacker.batsense.net";
         let assets_for_me = config
             .asset_addr

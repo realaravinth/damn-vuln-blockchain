@@ -21,8 +21,9 @@ use actix_web::{
     HttpResponse, Responder,
 };
 
-use damn_vuln_blockchain::config::Config;
+use damn_vuln_blockchain::config::{Config, Mode};
 use damn_vuln_blockchain::payload::{GetStake, Peer, SellAsset};
+use damn_vuln_blockchain::Client;
 
 //#[post("/assets/buy")]
 //async fn asset_buy(data: web::Data<Config>) -> impl Responder {
@@ -74,8 +75,17 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
 // get stake for a particular block ID
 #[post("/stake")]
 async fn get_stake(payload: web::Json<GetStake>, data: web::Data<Config>) -> impl Responder {
-    use damn_vuln_blockchain::asset::GetStake as ActorGetStake;
+    use damn_vuln_blockchain::asset::{GetStake as ActorGetStake, SetStakeBuilder};
     let msg: ActorGetStake = payload.into_inner().into();
+    // attacking peer should always return stake = 0
+    if data.mode == Mode::Attacker(false) {
+        let set_stake_msg = SetStakeBuilder::default()
+            .block_id(msg.0)
+            .peer_id(data.peer_id.clone())
+            .build()
+            .unwrap();
+        data.asset_addr.send(set_stake_msg).await.unwrap();
+    };
 
     let stake = data.asset_addr.send(msg).await.unwrap();
 
@@ -84,9 +94,14 @@ async fn get_stake(payload: web::Json<GetStake>, data: web::Data<Config>) -> imp
 
 // buy asset
 #[post("/assets/sell")]
-async fn sell(payload: web::Json<SellAsset>, data: web::Data<Config>) -> impl Responder {
-    use damn_vuln_blockchain::asset::{ChooseValidator, GetAssetInfo};
-    use damn_vuln_blockchain::discovery::GetPeer;
+async fn sell(
+    client: web::Data<Client>,
+    payload: web::Json<SellAsset>,
+    data: web::Data<Config>,
+) -> impl Responder {
+    use damn_vuln_blockchain::asset::{ChooseValidator, GetAssetInfo, Stake};
+    use damn_vuln_blockchain::client::GetStake;
+    use damn_vuln_blockchain::discovery::{DumpPeer, GetPeer};
 
     if let Some(asset_info) = data
         .asset_addr
@@ -107,23 +122,34 @@ async fn sell(payload: web::Json<SellAsset>, data: web::Data<Config>) -> impl Re
                 //
                 // maybe AssetLedger can have a second structure with stake
                 // for every block ID?
-                let validator = data
-                    .asset_addr
-                    .send(ChooseValidator)
-                    .await
-                    .unwrap()
-                    // unwrap below should be taken care of
-                    // None occurs when there are no peers in
-                    // the network
-                    .unwrap();
-                let validator_peer = data
-                    .network_addr
-                    .send(GetPeer(validator))
-                    .await
-                    .unwrap()
-                    .unwrap();
-                //TODO:
-                // 1. send peer the transaction request
+                //            let validator = data
+                //                .asset_addr
+                //                .send(ChooseValidator)
+                //                .await
+                //                .unwrap()
+                //                // unwrap below should be taken care of
+                //                // None occurs when there are no peers in
+                //                // the network
+                //                .unwrap();
+                //            let validator_peer = data
+                //                .network_addr
+                //                .send(GetPeer(validator))
+                //                .await
+                //                .unwrap()
+                //                .unwrap();
+                //            //TODO:
+                //            // 1. send peer the transaction request
+                let mut stake: Vec<Stake> = Vec::new();
+                let peers = data.network_addr.send(DumpPeer).await.unwrap();
+                peers.iter().for_each(|peer| {
+                    let a = async {
+                        //                        let client_payload = GetStake {
+                        //                            block_id : // TODO get next block ID,
+                        //                            peer_id: peer.id,
+                        //                        };
+                        //                        client.get_stake(client_payload, &data).await;
+                    };
+                });
             }
         }
     };

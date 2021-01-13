@@ -363,8 +363,8 @@ pub struct GetPeerAssets(pub String);
 #[rtype(result = "()")]
 pub struct SetStake {
     pub block_id: usize,
-    pub stake: Vec<String>,
     pub peer_id: String,
+    pub stake: Vec<String>,
 }
 
 /// Get stake for a block ID

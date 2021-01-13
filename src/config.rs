@@ -38,7 +38,10 @@ pub struct Config {
 #[derive(Clone, PartialEq)]
 pub enum Mode {
     Auditor,
-    Attacker,
+    /// set Attacker = true when
+    /// mounting attack, i.e, when
+    /// maximum stake is required
+    Attacker(bool),
     Victim,
     Normal,
 }
@@ -144,7 +147,7 @@ impl Config {
             "victim" => mode = Mode::Victim,
 
             "attacker" => {
-                mode = Mode::Attacker;
+                mode = Mode::Attacker(false)
                 //           tampered_asset_addr = Some(AssetLedger::default().start());
             }
             "normal" => {
