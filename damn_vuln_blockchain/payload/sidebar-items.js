@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Gossip",""],["Peer","Represents a peer"],["SellAsset","Sell asset payload"]]});
+initSidebarItems({"struct":[["GetStake","Get stake payload"],["Gossip",""],["Peer","Represents a peer"],["SellAsset","Sell asset payload"]]});

@@ -137,6 +137,9 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -162,7 +165,7 @@
 };
 
 <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">config</span>::<span class="ident">Config</span>;
-<span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">payload</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">payload</span>::{<span class="ident">GetStake</span>, <span class="ident">Peer</span>, <span class="ident">SellAsset</span>};
 
 <span class="comment">//#[post(&quot;/assets/buy&quot;)]</span>
 <span class="comment">//async fn asset_buy(data: web::Data&lt;Config&gt;) -&gt; impl Responder {</span>
@@ -214,7 +217,10 @@
 <span class="comment">// get stake for a particular block ID</span>
 <span class="attribute">#[<span class="ident">post</span>(<span class="string">&quot;/stake&quot;</span>)]</span>
 <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">get_stake</span>(<span class="ident">payload</span>: <span class="ident">web</span>::<span class="ident">Json</span><span class="op">&lt;</span><span class="ident">GetStake</span><span class="op">&gt;</span>, <span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
-    <span class="kw">let</span> <span class="ident">stake</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">asset_addr</span>.<span class="ident">send</span>(<span class="ident">payload</span>.<span class="ident">into_inner</span>()).<span class="ident">await</span>.<span class="ident">unwrap</span>();
+    <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">asset</span>::<span class="ident">GetStake</span> <span class="kw">as</span> <span class="ident">ActorGetStake</span>;
+    <span class="kw">let</span> <span class="ident">msg</span>: <span class="ident">ActorGetStake</span> <span class="op">=</span> <span class="ident">payload</span>.<span class="ident">into_inner</span>().<span class="ident">into</span>();
+
+    <span class="kw">let</span> <span class="ident">stake</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">asset_addr</span>.<span class="ident">send</span>(<span class="ident">msg</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
 
     <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">json</span>(<span class="ident">stake</span>)
 }

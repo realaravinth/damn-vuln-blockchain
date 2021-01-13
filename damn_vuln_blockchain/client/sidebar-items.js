@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Client","Client wrapper for p2p communication"]]});
+initSidebarItems({"struct":[["Client","Client wrapper for p2p communication"],["GetStake","Get stake using client"]]});
