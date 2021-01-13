@@ -9,8 +9,8 @@
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
        <span class="kw">let</span> <span class="ident">chain</span> <span class="op">=</span> <span class="ident">Chain</span>::<span class="ident">new</span>(<span class="string">&quot;My chain&quot;</span>); <span class="comment">// create blockchain</span>
-       <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>(); <span class="comment">// generate some assets</span>
-
+       <span class="kw">let</span> <span class="ident">peer_id</span> <span class="op">=</span> <span class="string">&quot;Me&quot;</span>;
+       <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>(<span class="ident">peer_id</span>); <span class="comment">// generate some assets</span>
        <span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">assets</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
        <span class="comment">// get the last block of a chain</span>

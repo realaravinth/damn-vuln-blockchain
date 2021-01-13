@@ -333,8 +333,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() {</span>
 <span class="doccomment">//!        let chain = Chain::new(&quot;My chain&quot;); // create blockchain</span>
-<span class="doccomment">//!        let mut assets = AssetLedger::generate(); // generate some assets</span>
-<span class="doccomment">//!</span>
+<span class="doccomment">//!        let peer_id = &quot;Me&quot;;</span>
+<span class="doccomment">//!        let mut assets = AssetLedger::generate(peer_id); // generate some assets</span>
 <span class="doccomment">//!        let asset = assets.assets.pop().unwrap();</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!        // get the last block of a chain</span>
@@ -565,7 +565,7 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">prev</span>.<span class="ident">get_serial_no</span>(), <span class="prelude-val">Some</span>(<span class="number">0</span>));
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">prev</span>.<span class="ident">hash</span>(), <span class="ident">prev</span>.<span class="ident">get_hash</span>(), <span class="string">&quot;Genesis block hash works&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>(<span class="string">&quot;Me&quot;</span>);
         <span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">assets</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>()

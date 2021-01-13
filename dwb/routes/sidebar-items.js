@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["services",""]],"struct":[["assets_dump",""],["peer_dump",""],["peer_enroll",""],["sell",""]]});
+initSidebarItems({"fn":[["services",""]],"struct":[["assets_dump",""],["get_stake",""],["peer_dump",""],["peer_enroll",""],["sell",""]]});

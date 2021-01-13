@@ -605,7 +605,7 @@
 
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">chain</span>.<span class="ident">get_last_block</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>(<span class="string">&quot;Me&quot;</span>);
         <span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">assets</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>()
@@ -650,7 +650,7 @@
 
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">chain_addr</span>.<span class="ident">send</span>(<span class="ident">GetLastBlock</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>(<span class="string">&quot;Me&quot;</span>);
         <span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">assets</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>()
@@ -714,7 +714,7 @@
 
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">parallel_chain</span>.<span class="ident">get_last_block</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>(<span class="string">&quot;Me&quot;</span>);
         <span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">assets</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>()
@@ -745,7 +745,7 @@
         <span class="comment">// get previous block to add new block</span>
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">chain_addr</span>.<span class="ident">send</span>(<span class="ident">GetLastBlock</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">AssetLedger</span>::<span class="ident">generate</span>(<span class="string">&quot;Me&quot;</span>);
         <span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">assets</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">new_block</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>()

@@ -136,6 +136,7 @@
 <span id="133">133</span>
 <span id="134">134</span>
 <span id="135">135</span>
+<span id="136">136</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -210,13 +211,13 @@
     <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">json</span>(<span class="ident">assets</span>)
 }
 
-<span class="comment">//// asset dump</span>
-<span class="comment">//#[get(&quot;/stake&quot;)]</span>
-<span class="comment">//async fn assets_dump(data: web::Data&lt;Config&gt;) -&gt; impl Responder {</span>
-<span class="comment">//use damn_vuln_blockchain::asset::GetStake;</span>
-<span class="comment">//    let assets = data.asset_addr.send(DumpLedger).await.unwrap();</span>
-<span class="comment">//    HttpResponse::Ok().json(assets)</span>
-<span class="comment">//}</span>
+<span class="comment">// get stake for a particular block ID</span>
+<span class="attribute">#[<span class="ident">post</span>(<span class="string">&quot;/stake&quot;</span>)]</span>
+<span class="ident">async</span> <span class="kw">fn</span> <span class="ident">get_stake</span>(<span class="ident">payload</span>: <span class="ident">web</span>::<span class="ident">Json</span><span class="op">&lt;</span><span class="ident">GetStake</span><span class="op">&gt;</span>, <span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
+    <span class="kw">let</span> <span class="ident">stake</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">asset_addr</span>.<span class="ident">send</span>(<span class="ident">payload</span>.<span class="ident">into_inner</span>()).<span class="ident">await</span>.<span class="ident">unwrap</span>();
+
+    <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">json</span>(<span class="ident">stake</span>)
+}
 
 <span class="comment">// buy asset</span>
 <span class="attribute">#[<span class="ident">post</span>(<span class="string">&quot;/assets/sell&quot;</span>)]</span>
@@ -271,6 +272,7 @@
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">peer_enroll</span>);
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">peer_dump</span>);
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">assets_dump</span>);
+    <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">get_stake</span>);
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "dwb";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

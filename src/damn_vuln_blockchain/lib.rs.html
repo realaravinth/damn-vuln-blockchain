@@ -75,6 +75,7 @@
 <span id="72">72</span>
 <span id="73">73</span>
 <span id="74">74</span>
+<span id="75">75</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -116,7 +117,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() {</span>
 <span class="doccomment">//!        let chain = Chain::new(&quot;My chain&quot;); // create blockchain</span>
-<span class="doccomment">//!        let mut assets = AssetLedger::generate(); // generate some assets</span>
+<span class="doccomment">//!        let peer_id = &quot;Me&quot;;</span>
+<span class="doccomment">//!        let mut assets = AssetLedger::generate(peer_id); // generate some assets</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!        let asset = assets.assets.pop().unwrap();</span>
 <span class="doccomment">//!</span>
