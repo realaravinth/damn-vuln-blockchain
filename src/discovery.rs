@@ -27,7 +27,7 @@
 use actix::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::logs::Peer;
+use crate::payload::Peer;
 
 #[derive(Deserialize, Default, Serialize, Clone, Debug)]
 pub struct Network {

@@ -19,6 +19,7 @@ use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
 use crate::block::Block;
+use crate::payload::*;
 use crate::{asset::Asset, utils::*};
 
 #[derive(Deserialize, Display)]
@@ -79,30 +80,4 @@ pub enum Action {
     /// after when a block is created
     #[display(fmt = "")]
     TransactionBroadcasting,
-}
-
-#[derive(Deserialize, Display, Serialize, Clone, Debug, Default)]
-#[display(fmt = "{}", id)]
-pub struct Peer {
-    /// some random ID
-    pub id: String,
-    /// IP must include the port as well
-    pub ip: String,
-    //pub balance: Option<u64>,
-}
-
-#[derive(Deserialize, Display, Serialize, Clone, Debug, Default)]
-#[display(fmt = "from {} to {}", tx, rx)]
-pub struct Gossip {
-    pub tx: Peer,
-    pub rx: Peer,
-}
-
-/// Sell asset payload
-#[derive(Deserialize, Serialize)]
-pub struct SellAsset {
-    /// asset ID
-    pub asset_id: String,
-    /// use stake for transaction?
-    pub use_stake: bool,
 }

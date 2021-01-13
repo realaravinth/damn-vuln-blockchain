@@ -67,6 +67,7 @@ pub mod config;
 pub mod discovery;
 pub mod error;
 pub mod logs;
+pub mod payload;
 mod utils;
 
 pub use client::Client;

@@ -25,7 +25,7 @@ mod tests {
     use damn_vuln_blockchain::chain::Chain;
     use damn_vuln_blockchain::config::{Config, Mode};
     use damn_vuln_blockchain::discovery::Network;
-    use damn_vuln_blockchain::logs::Peer;
+    use damn_vuln_blockchain::payload::Peer;
 
     use crate::routes::services;
 

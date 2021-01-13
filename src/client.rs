@@ -22,7 +22,7 @@ use log::{debug, info};
 use crate::asset::{Asset, ReplaceLedger};
 use crate::config::Config;
 use crate::discovery::AddPeer;
-use crate::logs::Peer;
+use crate::payload::Peer;
 //use crate::logs::SellAsset;
 
 // NOTE these URLs are subject to change

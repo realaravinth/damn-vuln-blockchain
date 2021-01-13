@@ -22,8 +22,7 @@ use actix_web::{
 };
 
 use damn_vuln_blockchain::config::Config;
-use damn_vuln_blockchain::logs::Peer;
-use damn_vuln_blockchain::logs::SellAsset;
+use damn_vuln_blockchain::payload::*;
 
 //#[post("/assets/buy")]
 //async fn asset_buy(data: web::Data<Config>) -> impl Responder {
@@ -75,7 +74,7 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
 //// asset dump
 //#[get("/stake")]
 //async fn assets_dump(data: web::Data<Config>) -> impl Responder {
-//    use damn_vuln_blockchain::asset::DumpLedger;
+//use damn_vuln_blockchain::asset::GetStake;
 //    let assets = data.asset_addr.send(DumpLedger).await.unwrap();
 //    HttpResponse::Ok().json(assets)
 //}
