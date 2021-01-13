@@ -38,7 +38,8 @@
 //!
 //! fn main() {
 //!        let chain = Chain::new("My chain"); // create blockchain
-//!        let mut assets = AssetLedger::generate(); // generate some assets
+//!        let peer_id = "Me";
+//!        let mut assets = AssetLedger::generate(peer_id); // generate some assets
 //!
 //!        let asset = assets.assets.pop().unwrap();
 //!

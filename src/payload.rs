@@ -44,3 +44,5 @@ pub struct SellAsset {
     /// use stake for transaction?
     pub use_stake: bool,
 }
+
+pub use crate::asset::GetStake;

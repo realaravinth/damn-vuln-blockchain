@@ -32,6 +32,7 @@ const PEER_ENROLL: &str = "/peer/enroll";
 const PEER_DISCOVER_ALL: &str = "/peer/discover/all";
 const GET_ALL_ASSETS: &str = "/assets/all";
 const SELL_ASSET: &str = "/assets/sell";
+const GET_STAKE: &str = "/stake";
 
 /// Client wrapper for p2p communication
 #[derive(Clone, Default)]

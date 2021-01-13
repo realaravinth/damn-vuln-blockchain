@@ -22,8 +22,8 @@
 //!
 //! fn main() {
 //!        let chain = Chain::new("My chain"); // create blockchain
-//!        let mut assets = AssetLedger::generate(); // generate some assets
-//!
+//!        let peer_id = "Me";
+//!        let mut assets = AssetLedger::generate(peer_id); // generate some assets
 //!        let asset = assets.assets.pop().unwrap();
 //!
 //!        // get the last block of a chain
@@ -254,7 +254,7 @@ mod tests {
         assert_eq!(prev.get_serial_no(), Some(0));
 
         assert_eq!(prev.hash(), prev.get_hash(), "Genesis block hash works");
-        let mut assets = AssetLedger::generate();
+        let mut assets = AssetLedger::generate("Me");
         let asset = assets.assets.pop().unwrap();
 
         let mut block = BlockBuilder::default()

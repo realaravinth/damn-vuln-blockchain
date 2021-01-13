@@ -139,7 +139,7 @@ impl Config {
         {
             "auditor" => {
                 mode = Mode::Auditor;
-                asset_leger = AssetLedger::generate();
+                asset_leger = AssetLedger::generate(&peer_id);
             }
             "victim" => mode = Mode::Victim,
 

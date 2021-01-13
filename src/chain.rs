@@ -209,7 +209,7 @@ mod tests {
 
         let prev = chain.get_last_block();
 
-        let mut assets = AssetLedger::generate();
+        let mut assets = AssetLedger::generate("Me");
         let asset = assets.assets.pop().unwrap();
 
         let block = BlockBuilder::default()
@@ -254,7 +254,7 @@ mod tests {
 
         let prev = chain_addr.send(GetLastBlock).await.unwrap();
 
-        let mut assets = AssetLedger::generate();
+        let mut assets = AssetLedger::generate("Me");
         let asset = assets.assets.pop().unwrap();
 
         let block = BlockBuilder::default()
@@ -318,7 +318,7 @@ mod tests {
 
         let prev = parallel_chain.get_last_block();
 
-        let mut assets = AssetLedger::generate();
+        let mut assets = AssetLedger::generate("Me");
         let asset = assets.assets.pop().unwrap();
 
         let block = BlockBuilder::default()
@@ -349,7 +349,7 @@ mod tests {
         // get previous block to add new block
         let prev = chain_addr.send(GetLastBlock).await.unwrap();
 
-        let mut assets = AssetLedger::generate();
+        let mut assets = AssetLedger::generate("Me");
         let asset = assets.assets.pop().unwrap();
 
         let new_block = BlockBuilder::default()

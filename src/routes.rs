@@ -71,13 +71,13 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
     HttpResponse::Ok().json(assets)
 }
 
-//// asset dump
-//#[get("/stake")]
-//async fn assets_dump(data: web::Data<Config>) -> impl Responder {
-//use damn_vuln_blockchain::asset::GetStake;
-//    let assets = data.asset_addr.send(DumpLedger).await.unwrap();
-//    HttpResponse::Ok().json(assets)
-//}
+// get stake for a particular block ID
+#[post("/stake")]
+async fn get_stake(payload: web::Json<GetStake>, data: web::Data<Config>) -> impl Responder {
+    let stake = data.asset_addr.send(payload.into_inner()).await.unwrap();
+
+    HttpResponse::Ok().json(stake)
+}
 
 // buy asset
 #[post("/assets/sell")]
@@ -132,4 +132,5 @@ pub fn services(cfg: &mut ServiceConfig) {
     cfg.service(peer_enroll);
     cfg.service(peer_dump);
     cfg.service(assets_dump);
+    cfg.service(get_stake);
 }

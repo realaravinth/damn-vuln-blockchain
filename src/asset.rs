@@ -33,6 +33,7 @@ use std::fmt::{Display, Formatter, Result};
 
 use actix::prelude::*;
 use derive_builder::Builder;
+use log::debug;
 use serde::{Deserialize, Serialize};
 
 /// /// [Asset]s are objects that can be transacted on the blockchain
@@ -134,6 +135,7 @@ impl Asset {
 pub struct AssetLedger {
     pub assets: Vec<Asset>,
     pub stake: Vec<Stake>,
+    pub peer_id: String,
 }
 
 /// represents the stake each peer is willing to send
@@ -157,6 +159,16 @@ impl AssetLedger {
         });
 
         payload
+    }
+
+    fn default_stake(&self) -> Vec<String> {
+        let assets_for_me = self.get_peer_assets(&self.peer_id);
+
+        let mut stake_id = Vec::new();
+        assets_for_me.iter().for_each(|asset| {
+            stake_id.push(asset.get_hash().to_owned());
+        });
+        stake_id
     }
 
     // get the current number of peers assigned
@@ -186,10 +198,11 @@ impl AssetLedger {
     }
 
     /// generates a bunch of fake assets
-    pub fn generate() -> AssetLedger {
+    pub fn generate(peer_id: &str) -> AssetLedger {
         let mut ledger = AssetLedger {
             assets: Vec::new(),
             stake: Vec::new(),
+            peer_id: peer_id.into(),
         };
 
         ledger.assets.push(Asset::new("les Escaldes", 100));
@@ -344,8 +357,8 @@ pub struct SetStake {
 }
 
 /// Get stake for a block ID
-#[derive(Message)]
-#[rtype(result = "Option<Stake>")]
+#[derive(Deserialize, Serialize, Message)]
+#[rtype(result = "Stake")]
 pub struct GetStake(pub usize);
 
 impl Handler<InitNetwork> for AssetLedger {
@@ -501,9 +514,18 @@ impl Handler<GetStake> for AssetLedger {
             .iter()
             .find(|stake| if stake.block_id == msg.0 { true } else { false });
         if stake.is_some() {
-            MessageResult(Some(stake.unwrap().to_owned()))
+            MessageResult(stake.unwrap().to_owned())
         } else {
-            MessageResult(None)
+            debug!("GetStake is empty, generating default stake");
+            let stake = StakeBuilder::default()
+                .block_id(msg.0)
+                .stake(self.default_stake())
+                .build()
+                .unwrap();
+
+            self.stake.push(stake.clone());
+            println!("{:#?}", self.default_stake());
+            MessageResult(stake)
         }
     }
 }
@@ -529,12 +551,13 @@ mod tests {
 
     #[actix_rt::test]
     async fn asset_ledger_init_network_works() {
-        let asset_ledger = AssetLedger::generate();
+        let peer_id = "me";
+        let asset_ledger = AssetLedger::generate(&peer_id);
         let assert_ledger_addr = asset_ledger.clone().start();
         let network_size: usize = 3;
         let msg = InitNetworkBuilder::default()
             .network_size(network_size)
-            .peer_id("me".into())
+            .peer_id(peer_id.into())
             .build()
             .unwrap();
         assert_ledger_addr.send(msg).await.unwrap();
@@ -552,7 +575,7 @@ mod tests {
                 // below statement should panic
                 assert_eq!(
                     i.get_owner().as_ref().unwrap(),
-                    "me",
+                    peer_id,
                     "asset ownder rightly assigned"
                 );
                 asset_ledger_per_peer_state += 1;
@@ -567,7 +590,8 @@ mod tests {
 
     #[actix_rt::test]
     async fn asset_ledger_actor_works() {
-        let asset_ledger = AssetLedger::generate();
+        let peer_id = "Me";
+        let asset_ledger = AssetLedger::generate(peer_id.into());
         let assert_ledger_addr = asset_ledger.clone().start();
 
         let dump = assert_ledger_addr.send(DumpLedger).await.unwrap();
@@ -589,7 +613,7 @@ mod tests {
 
         let change_ownser_message = ChangeAssetOwnerBuilder::default()
             .asset_id(hash.into())
-            .new_owner("Me".into())
+            .new_owner(peer_id.into())
             .build()
             .unwrap();
         assert_ledger_addr
@@ -598,7 +622,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            &Some("Me".to_string()),
+            &Some(peer_id.into()),
             assert_ledger_addr
                 .send(GetAssetInfo(hash.into()))
                 .await
@@ -624,20 +648,21 @@ mod tests {
 
     #[actix_rt::test]
     async fn choose_validator_works() {
-        let asset_ledger = AssetLedger::generate();
+        let peer_id = "me";
+        let asset_ledger = AssetLedger::generate(peer_id);
         let assert_ledger_addr = asset_ledger.clone().start();
         let network_size: usize = 3;
 
         let mut msg = InitNetworkBuilder::default()
             .network_size(network_size)
-            .peer_id("me".into())
+            .peer_id(peer_id.into())
             .build()
             .unwrap();
         assert_ledger_addr.send(msg).await.unwrap();
         // testng ChooseValidator
         assert_eq!(
             assert_ledger_addr.send(ChooseValidator).await.unwrap(),
-            Some("me".into()),
+            Some(peer_id.into()),
             "ChooseValidator works"
         );
 
@@ -670,7 +695,8 @@ mod tests {
 
     #[actix_rt::test]
     async fn get_peer_assets_works() {
-        let asset_addr = AssetLedger::generate().start();
+        let peer_id = "me";
+        let asset_addr = AssetLedger::generate(peer_id).start();
         let mut assets_for_me = asset_addr.send(GetPeerAssets("Me".into())).await.unwrap();
 
         let network_size: usize = 3;
@@ -679,17 +705,21 @@ mod tests {
 
         let msg = InitNetworkBuilder::default()
             .network_size(network_size)
-            .peer_id("Me".into())
+            .peer_id(peer_id.into())
             .build()
             .unwrap();
         asset_addr.send(msg).await.unwrap();
-        assets_for_me = asset_addr.send(GetPeerAssets("Me".into())).await.unwrap();
+        assets_for_me = asset_addr
+            .send(GetPeerAssets(peer_id.into()))
+            .await
+            .unwrap();
         assert_eq!(assets_for_me.len(), 5);
     }
 
     #[actix_rt::test]
     async fn stake_works() {
-        let asset_addr = AssetLedger::generate().start();
+        let peer_id = "me";
+        let asset_addr = AssetLedger::generate(peer_id).start();
         let mut assets_for_me = asset_addr.send(GetPeerAssets("Me".into())).await.unwrap();
 
         let network_size: usize = 3;
@@ -698,13 +728,18 @@ mod tests {
 
         let msg = InitNetworkBuilder::default()
             .network_size(network_size)
-            .peer_id("Me".into())
+            .peer_id(peer_id.into())
             .build()
             .unwrap();
         asset_addr.send(msg).await.unwrap();
-        assets_for_me = asset_addr.send(GetPeerAssets("Me".into())).await.unwrap();
+        assets_for_me = asset_addr
+            .send(GetPeerAssets(peer_id.into()))
+            .await
+            .unwrap();
         let mut stake_id = Vec::new();
+
         let mut count = 2;
+
         assets_for_me.iter().for_each(|asset| {
             if count > 0 {
                 stake_id.push(asset.get_hash().to_owned());
@@ -715,24 +750,38 @@ mod tests {
         let set_stake_msg = SetStakeBuilder::default()
             .block_id(5)
             .stake(stake_id)
-            .peer_id("Me".into())
+            .peer_id(peer_id.into())
             .build()
             .unwrap();
 
-        asset_addr.send(set_stake_msg.clone()).await.unwrap();
+        // checking default stake
+        let mut default_stake_id: Vec<String> = Vec::new();
+        assets_for_me.iter().for_each(|asset| {
+            default_stake_id.push(asset.get_hash().to_owned());
+        });
 
-        let stake = asset_addr.send(GetStake(5)).await.unwrap().unwrap();
+        let stake = asset_addr.send(GetStake(4)).await.unwrap();
+
+        assert_eq!(stake.block_id, 4);
+        assert_eq!(stake.stake, default_stake_id);
+
+        // checking custom stake
+        asset_addr.send(set_stake_msg.clone()).await.unwrap();
+        let stake = asset_addr.send(GetStake(5)).await.unwrap();
 
         assert_eq!(stake.block_id, set_stake_msg.block_id);
         assert_eq!(stake.stake, set_stake_msg.stake);
+
+        asset_addr.send(set_stake_msg.clone()).await.unwrap();
     }
 
     #[test]
     fn peers_currently_assigned_works() {
-        let mut assets = AssetLedger::generate();
+        let peer_id = "me";
+        let mut assets = AssetLedger::generate(peer_id);
         let assets_per_peer = 3;
         assert_eq!(assets.peers_currently_assigned(), 0);
-        assign_assets(&mut assets, "me", assets_per_peer);
+        assign_assets(&mut assets, peer_id, assets_per_peer);
         assert_eq!(assets.peers_currently_assigned(), 1);
         assign_assets(&mut assets, "you", assets_per_peer);
 
@@ -762,5 +811,22 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn default_stake_works() {
+        let peer_id = "me";
+        let mut assets = AssetLedger::generate(peer_id);
+        let assets_per_peer = 3;
+        assign_assets(&mut assets, peer_id, assets_per_peer);
+        let assets_for_me = assets.get_peer_assets(&peer_id);
+        let mut stake = Vec::new();
+        assets_for_me.iter().for_each(|asset| {
+            if asset.get_owner().is_some() {
+                stake.push(asset.get_hash().to_owned());
+            }
+        });
+
+        assert_eq!(stake, assets.default_stake())
     }
 }
