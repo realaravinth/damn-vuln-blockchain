@@ -24,7 +24,7 @@ use crate::Client;
 
 #[derive(Clone)]
 pub struct Config {
-    pub mode: Mode,
+    pub mode_addr: Addr<ModeActor>,
     pub peer_id: String,
     pub public_ip: String,
     pub auditor_node: String,
@@ -35,7 +35,7 @@ pub struct Config {
     pub init_network_size: usize,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Mode {
     Auditor,
     /// set Attacker = true when
@@ -53,9 +53,9 @@ impl Config {
     }
 
     pub async fn bootstrap(&self) {
-        if self.mode != Mode::Auditor {
+        if self.mode_addr.send(GetMode).await.unwrap() != Mode::Auditor {
             info!("Bootstrapping node");
-            let mut client = Client::default();
+            let client = Client::default();
             info!("Enrolling peer");
             client.peer_enroll(&self).await;
             info!("Discovering peers in network");
@@ -156,9 +156,10 @@ impl Config {
             _ => panic!("Enter valid peer mode"),
         };
 
+        let mode_addr = ModeActor::new(mode).start();
         Config {
             peer_id: peer_id.into(),
-            mode,
+            mode_addr,
             //       tampered_asset_addr,
             asset_addr: asset_leger.start(),
             tampered_chain_addr,
@@ -168,5 +169,59 @@ impl Config {
             auditor_node: auditor_node.into(),
             public_ip: public_ip.into(),
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct ModeActor {
+    pub mode: Mode,
+}
+
+impl ModeActor {
+    pub fn new(mode: Mode) -> Self {
+        ModeActor { mode }
+    }
+}
+
+impl Actor for ModeActor {
+    type Context = Context<Self>;
+}
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct SetMode(pub Mode);
+
+#[derive(Message)]
+#[rtype(result = "Mode")]
+pub struct GetMode;
+
+impl Handler<GetMode> for ModeActor {
+    type Result = MessageResult<GetMode>;
+    fn handle(&mut self, _msg: GetMode, _ctx: &mut Self::Context) -> Self::Result {
+        MessageResult(self.mode.clone())
+    }
+}
+
+impl Handler<SetMode> for ModeActor {
+    type Result = MessageResult<SetMode>;
+    fn handle(&mut self, msg: SetMode, _ctx: &mut Self::Context) -> Self::Result {
+        self.mode = msg.0;
+        MessageResult(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[actix_rt::test]
+    async fn mode_actor_works() {
+        let mode = ModeActor::new(Mode::Auditor).start();
+
+        assert_eq!(Mode::Auditor, mode.send(GetMode).await.unwrap());
+        mode.send(SetMode(Mode::Attacker(true))).await.unwrap();
+
+        assert_eq!(Mode::Attacker(true), mode.send(GetMode).await.unwrap());
     }
 }

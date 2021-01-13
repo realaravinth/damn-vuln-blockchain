@@ -21,8 +21,8 @@ use actix_web::{
     HttpResponse, Responder,
 };
 
-use damn_vuln_blockchain::config::{Config, Mode};
-use damn_vuln_blockchain::payload::{GetStake, Peer, SellAsset};
+use damn_vuln_blockchain::config::{Config, GetMode, Mode, SetMode};
+use damn_vuln_blockchain::payload::{GetStake as PayloadGetStake, Peer, SellAsset};
 use damn_vuln_blockchain::Client;
 
 //#[post("/assets/buy")]
@@ -72,16 +72,29 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
     HttpResponse::Ok().json(assets)
 }
 
+// attack
+#[post("/attack")]
+async fn set_attack(data: web::Data<Config>) -> impl Responder {
+    if data.mode_addr.send(GetMode).await.unwrap() == Mode::Attacker(false) {
+        data.mode_addr
+            .send(SetMode(Mode::Attacker(true)))
+            .await
+            .unwrap();
+    }
+    HttpResponse::Ok()
+}
+
 // get stake for a particular block ID
 #[post("/stake")]
-async fn get_stake(payload: web::Json<GetStake>, data: web::Data<Config>) -> impl Responder {
+async fn get_stake(payload: web::Json<PayloadGetStake>, data: web::Data<Config>) -> impl Responder {
     use damn_vuln_blockchain::asset::{GetStake as ActorGetStake, SetStakeBuilder};
     let msg: ActorGetStake = payload.into_inner().into();
     // attacking peer should always return stake = 0
-    if data.mode == Mode::Attacker(false) {
+    if data.mode_addr.send(GetMode).await.unwrap() == Mode::Attacker(false) {
         let set_stake_msg = SetStakeBuilder::default()
             .block_id(msg.0)
             .peer_id(data.peer_id.clone())
+            .stake(Vec::default())
             .build()
             .unwrap();
         data.asset_addr.send(set_stake_msg).await.unwrap();
@@ -100,7 +113,8 @@ async fn sell(
     data: web::Data<Config>,
 ) -> impl Responder {
     use damn_vuln_blockchain::asset::{ChooseValidator, GetAssetInfo, Stake};
-    use damn_vuln_blockchain::client::GetStake;
+    use damn_vuln_blockchain::chain::GetLastBlock;
+    use damn_vuln_blockchain::client::GetStake as ClientGetStake;
     use damn_vuln_blockchain::discovery::{DumpPeer, GetPeer};
 
     if let Some(asset_info) = data
@@ -141,13 +155,15 @@ async fn sell(
                 //            // 1. send peer the transaction request
                 let mut stake: Vec<Stake> = Vec::new();
                 let peers = data.network_addr.send(DumpPeer).await.unwrap();
+                let current_block = data.chain_addr.send(GetLastBlock).await.unwrap();
+                let next_block_id = current_block.get_serial_no().unwrap() + 1;
                 peers.iter().for_each(|peer| {
                     let a = async {
-                        //                        let client_payload = GetStake {
-                        //                            block_id : // TODO get next block ID,
-                        //                            peer_id: peer.id,
-                        //                        };
-                        //                        client.get_stake(client_payload, &data).await;
+                        let client_payload = ClientGetStake {
+                            block_id: next_block_id,
+                            peer_id: peer.id.clone(),
+                        };
+                        //client.get_stake(client_payload, &data).await;
                     };
                 });
             }
@@ -162,4 +178,5 @@ pub fn services(cfg: &mut ServiceConfig) {
     cfg.service(peer_dump);
     cfg.service(assets_dump);
     cfg.service(get_stake);
+    cfg.service(set_attack);
 }

@@ -34,6 +34,7 @@ const PEER_DISCOVER_ALL: &str = "/peer/discover/all";
 const GET_ALL_ASSETS: &str = "/assets/all";
 const SELL_ASSET: &str = "/assets/sell";
 const GET_STAKE: &str = "/stake";
+const SET_ATTACK: &str = "/attack";
 
 /// Client wrapper for p2p communication
 #[derive(Clone, Default)]
@@ -50,7 +51,7 @@ pub struct GetStake {
 
 impl Client {
     /// enrolls peer with the auditor enode
-    pub async fn peer_enroll(&mut self, config: &Config) {
+    pub async fn peer_enroll(&self, config: &Config) {
         let peer = Peer {
             id: config.peer_id.clone(),
             ip: config.public_ip.clone(),
@@ -64,8 +65,23 @@ impl Client {
             .unwrap();
     }
 
+    /// set attack
+    pub async fn set_attack(&self, config: &Config) {
+        use crate::discovery::GetPeer;
+
+        let attack_peer = config
+            .network_addr
+            .send(GetPeer("attacker.batsense.net".into()))
+            .await
+            .unwrap()
+            .unwrap();
+        println!("Attack Peer: {:#?}", &attack_peer);
+        let addr = Client::make_uri(&attack_peer.ip, SET_ATTACK);
+        self.client.post(addr).send().await.unwrap();
+    }
+
     /// get stake for a block
-    pub async fn get_stake(&mut self, peer: GetStake, config: &Config) -> Stake {
+    pub async fn get_stake(&self, peer: GetStake, config: &Config) -> Stake {
         use crate::discovery::GetPeer;
         use crate::payload::GetStake as PayloadGetStake;
 
@@ -100,7 +116,7 @@ impl Client {
     }
 
     /// gets list of peers from auditor, should be called periodically
-    pub async fn peer_discovery(&mut self, config: &Config) {
+    pub async fn peer_discovery(&self, config: &Config) {
         // gets peers from Auditor and replaces peers
         // in local Network
         let addr = Client::make_uri(&config.auditor_node, PEER_DISCOVER_ALL);
@@ -119,7 +135,7 @@ impl Client {
     }
 
     /// gets asset ledger from auditor node, should be called periodically
-    pub async fn get_all_assets(&mut self, config: &Config) {
+    pub async fn get_all_assets(&self, config: &Config) {
         // gets assets from Auditor and replaces assets
         // in local AssetsLedger
         let addr = Client::make_uri(&config.auditor_node, GET_ALL_ASSETS);

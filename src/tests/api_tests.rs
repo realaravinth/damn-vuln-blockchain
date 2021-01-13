@@ -84,9 +84,7 @@ mod tests {
 
     #[actix_rt::test]
     async fn get_stake_victim_peer() {
-        use damn_vuln_blockchain::asset::{
-            GetPeerAssets, InitNetworkBuilder, SetStakeBuilder, Stake,
-        };
+        use damn_vuln_blockchain::asset::{GetPeerAssets, Stake};
 
         use damn_vuln_blockchain::client::GetStake;
 
@@ -106,7 +104,7 @@ mod tests {
             default_stake_id.push(asset.get_hash().to_owned());
         });
 
-        let mut client = Client::default();
+        let client = Client::default();
         let block_id = 9999;
 
         let client_msg = GetStake {
@@ -121,16 +119,13 @@ mod tests {
 
     #[actix_rt::test]
     async fn get_stake_attacker_peer() {
-        use damn_vuln_blockchain::asset::{
-            GetPeerAssets, InitNetworkBuilder, SetStakeBuilder, Stake,
-        };
-
+        use damn_vuln_blockchain::asset::{GetPeerAssets, Stake};
         use damn_vuln_blockchain::client::GetStake;
 
         let config = generate_test_config();
         config.bootstrap().await;
 
-        // testing attakcing peer
+        // testing attakcing peer when Mode::Attacker(false)
         let stake_peer_id = "attacker.batsense.net";
         let assets_for_me = config
             .asset_addr
@@ -143,7 +138,7 @@ mod tests {
             default_stake_id.push(asset.get_hash().to_owned());
         });
 
-        let mut client = Client::default();
+        let client = Client::default();
         let block_id = 9999;
 
         let client_msg = GetStake {
@@ -151,6 +146,19 @@ mod tests {
             peer_id: stake_peer_id.into(),
         };
 
+        let stake: Stake = client.get_stake(client_msg, &config).await;
+        assert_eq!(stake.block_id, block_id);
+        assert_eq!(stake.stake, Stake::default().stake);
+
+        // testing attakcing peer when Mode::Attacker(true)
+
+        client.set_attack(&config).await;
+
+        let block_id = 3;
+        let client_msg = GetStake {
+            block_id,
+            peer_id: stake_peer_id.into(),
+        };
         let stake: Stake = client.get_stake(client_msg, &config).await;
         assert_eq!(stake.block_id, block_id);
         assert_eq!(stake.stake, default_stake_id);

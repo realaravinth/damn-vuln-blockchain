@@ -185,26 +185,23 @@ impl AssetLedger {
     fn peers_currently_assigned(&self) -> usize {
         let mut peers_currently_assigned: Vec<&str> = Vec::new();
         self.assets.iter().for_each(|asset| {
-            let owner = match asset.get_owner() {
-                Some(val) => val,
-                None => "Notassigned",
-            };
-            let peer_check =
-                peers_currently_assigned.iter().find(
-                    |peer_id| {
-                        if **peer_id == owner {
-                            true
-                        } else {
-                            false
-                        }
-                    },
-                );
+            if let Some(owner) = asset.get_owner() {
+                let peer_check = peers_currently_assigned.iter().find(|peer_id| {
+                    if **peer_id == owner {
+                        true
+                    } else {
+                        false
+                    }
+                });
 
-            if peer_check.is_none() {
-                peers_currently_assigned.push(owner);
-            }
+                debug!("Peers currently assigned: {:#?}", &peer_check);
+
+                if peer_check.is_none() {
+                    peers_currently_assigned.push(owner);
+                }
+            };
         });
-        peers_currently_assigned.len() - 1
+        peers_currently_assigned.len()
     }
 
     /// generates a bunch of fake assets
@@ -359,7 +356,7 @@ pub struct ChooseValidator;
 pub struct GetPeerAssets(pub String);
 
 /// Set stake for a block ID
-#[derive(Builder, Clone, Message)]
+#[derive(Builder, PartialEq, Clone, Message)]
 #[rtype(result = "()")]
 pub struct SetStake {
     pub block_id: usize,
