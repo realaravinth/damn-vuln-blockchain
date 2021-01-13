@@ -98,7 +98,11 @@ pub struct Gossip {
     pub rx: Peer,
 }
 
+/// Sell asset payload
 #[derive(Deserialize, Serialize)]
 pub struct SellAsset {
+    /// asset ID
     pub asset_id: String,
+    /// use stake for transaction?
+    pub use_stake: bool,
 }

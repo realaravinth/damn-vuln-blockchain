@@ -24,6 +24,7 @@
 //! - [DumpLedger]: Dump the entire asset ledger
 //! - [ReplaceLedger]: Replace the current ledger with another ledger, useful when
 //! - [ChooseValidator]: Choose validator based on coinage
+//! - [GetPeerAssets]: Get all the assets belonging to a peer
 //! synchronising state
 
 use std::fmt::{Display, Formatter, Result};
@@ -123,6 +124,7 @@ impl Asset {
 /// - [DumpLedger]: Dump the entire asset ledger
 /// - [ReplaceLedger]: Replace the current ledger with another ledger, useful when
 /// - [ChooseValidator]: Choose validator based on coinage
+/// - [GetPeerAssets]: Get all the assets belonging to a peer
 /// synchronising state
 
 #[derive(Deserialize, Default, Serialize, Clone, Debug)]
@@ -298,6 +300,11 @@ pub struct ReplaceLedger(pub Vec<Asset>);
 #[rtype(result = "Option<String>")]
 pub struct ChooseValidator;
 
+/// Get assets belonging to a peer
+#[derive(Message)]
+#[rtype(result = "Vec<Asset>")]
+pub struct GetPeerAssets(pub String);
+
 impl Handler<InitNetwork> for AssetLedger {
     type Result = MessageResult<InitNetwork>;
 
@@ -395,6 +402,21 @@ impl Handler<ChooseValidator> for AssetLedger {
 
     fn handle(&mut self, _msg: ChooseValidator, _ctx: &mut Self::Context) -> Self::Result {
         MessageResult(self.choose_validator())
+    }
+}
+
+impl Handler<GetPeerAssets> for AssetLedger {
+    type Result = MessageResult<GetPeerAssets>;
+
+    fn handle(&mut self, msg: GetPeerAssets, _ctx: &mut Self::Context) -> Self::Result {
+        let mut payload: Vec<Asset> = Vec::new();
+        self.assets.iter().for_each(|asset| {
+            if asset.get_owner().is_some() && asset.get_owner().as_ref().unwrap() == &msg.0 {
+                payload.push(asset.clone());
+            }
+        });
+
+        MessageResult(payload.to_owned())
     }
 }
 
@@ -556,6 +578,25 @@ mod tests {
             Some("me".into()),
             "ChooseValidator works"
         );
+    }
+
+    #[actix_rt::test]
+    async fn get_peer_assets_works() {
+        let asset_addr = AssetLedger::generate().start();
+        let mut assets_for_me = asset_addr.send(GetPeerAssets("Me".into())).await.unwrap();
+
+        let network_size: usize = 3;
+
+        assert_eq!(assets_for_me.len(), 0);
+
+        let msg = InitNetworkBuilder::default()
+            .network_size(network_size)
+            .peer_id("Me".into())
+            .build()
+            .unwrap();
+        asset_addr.send(msg).await.unwrap();
+        assets_for_me = asset_addr.send(GetPeerAssets("Me".into())).await.unwrap();
+        assert_eq!(assets_for_me.len(), 5);
     }
 
     #[test]
