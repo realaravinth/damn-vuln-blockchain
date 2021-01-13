@@ -105,6 +105,10 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -206,9 +210,13 @@
     <span class="kw">pub</span> <span class="ident">rx</span>: <span class="ident">Peer</span>,
 }
 
+<span class="doccomment">/// Sell asset payload</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SellAsset</span> {
+    <span class="doccomment">/// asset ID</span>
     <span class="kw">pub</span> <span class="ident">asset_id</span>: <span class="ident">String</span>,
+    <span class="doccomment">/// use stake for transaction?</span>
+    <span class="kw">pub</span> <span class="ident">use_stake</span>: <span class="ident">bool</span>,
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "damn_vuln_blockchain";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
