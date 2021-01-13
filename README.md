@@ -39,23 +39,12 @@ $ cd damn-vuln-blockchain && cargo build
 `Damn Vulnerable Blockchain` comes with a peer implementation called
 `dwb`. `dwb` supports three modes:
 
-#### - Attacker:
-
-Configured to fork the blockchain and perform a double spend. See
-[attack scenario](#attack-scenario%3A).
-
-#### - Auditor:
-
-This is a special peer that acts as the discovery node and
-mint. It should be spawned first.
-
-#### - Victim:
-
-This peer will be configured to take itself down when an attack command
-is issued.
-
-#### - Normal:
-No special abilities, just an other node in the network
+| Mode     | Function                                                                                     |
+| -------- | -------------------------------------------------------------------------------------------- |
+| Attacker | Configured to fork the blockchain and perform a double spend. See                            |
+| Auditor  | This is a special peer that acts as the discovery node and mint. It should be spawned first. |
+| Victim   | This peer will be configured to take itself down when an attack command is issued.           |
+| Normal   | No special abilities, just an other node in the network                                      |
 
 
 #### `dwb` usage:
@@ -84,15 +73,15 @@ OPTIONS:
     -i, --public-ip <public_ip>          set public IP
 ```
 
-
 #### Spinning up a cluster:
+
 The easiest way to spin up a cluster locally is using `./network.sh`.
 
 ```
 USAGE:
-	./network.sh
-		launch   launches network
-		kill     kills network
+  ./network.sh
+  launch   launches network
+  kill     kills network
 ```
 
 ### Attack Scenario:

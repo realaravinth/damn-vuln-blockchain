@@ -25,6 +25,8 @@
 //! - [ReplaceLedger]: Replace the current ledger with another ledger, useful when
 //! - [ChooseValidator]: Choose validator based on coinage
 //! - [GetPeerAssets]: Get all the assets belonging to a peer
+//! - [SetStake]: Set stake for a block creation
+//! - [GetStake]: Get stake for a block  ID
 //! synchronising state
 
 use std::fmt::{Display, Formatter, Result};
@@ -125,14 +127,38 @@ impl Asset {
 /// - [ReplaceLedger]: Replace the current ledger with another ledger, useful when
 /// - [ChooseValidator]: Choose validator based on coinage
 /// - [GetPeerAssets]: Get all the assets belonging to a peer
+/// - [SetStake]: Set stake for a block creation
+/// - [GetStake]: Get stake for a block  ID
 /// synchronising state
-
 #[derive(Deserialize, Default, Serialize, Clone, Debug)]
 pub struct AssetLedger {
     pub assets: Vec<Asset>,
+    pub stake: Vec<Stake>,
+}
+
+/// represents the stake each peer is willing to send
+/// for every block creation.
+/// - `block_id` represents the future block ID that
+/// this stake is being set for
+/// - stake represnts the assets' hashes
+#[derive(Deserialize, Builder, Default, Serialize, Clone, Debug)]
+pub struct Stake {
+    pub block_id: usize,
+    pub stake: Vec<String>,
 }
 
 impl AssetLedger {
+    fn get_peer_assets(&self, peer_id: &str) -> Vec<Asset> {
+        let mut payload: Vec<Asset> = Vec::new();
+        self.assets.iter().for_each(|asset| {
+            if asset.get_owner().is_some() && asset.get_owner().as_ref().unwrap() == peer_id {
+                payload.push(asset.clone());
+            }
+        });
+
+        payload
+    }
+
     // get the current number of peers assigned
     fn peers_currently_assigned(&self) -> usize {
         let mut peers_currently_assigned: Vec<&str> = Vec::new();
@@ -161,7 +187,10 @@ impl AssetLedger {
 
     /// generates a bunch of fake assets
     pub fn generate() -> AssetLedger {
-        let mut ledger = AssetLedger { assets: Vec::new() };
+        let mut ledger = AssetLedger {
+            assets: Vec::new(),
+            stake: Vec::new(),
+        };
 
         ledger.assets.push(Asset::new("les Escaldes", 100));
         ledger.assets.push(Asset::new("Andorra la Vella", 100));
@@ -305,6 +334,20 @@ pub struct ChooseValidator;
 #[rtype(result = "Vec<Asset>")]
 pub struct GetPeerAssets(pub String);
 
+/// Set stake for a block ID
+#[derive(Builder, Clone, Message)]
+#[rtype(result = "()")]
+pub struct SetStake {
+    pub block_id: usize,
+    pub stake: Vec<String>,
+    pub peer_id: String,
+}
+
+/// Get stake for a block ID
+#[derive(Message)]
+#[rtype(result = "Option<Stake>")]
+pub struct GetStake(pub usize);
+
 impl Handler<InitNetwork> for AssetLedger {
     type Result = MessageResult<InitNetwork>;
 
@@ -409,14 +452,59 @@ impl Handler<GetPeerAssets> for AssetLedger {
     type Result = MessageResult<GetPeerAssets>;
 
     fn handle(&mut self, msg: GetPeerAssets, _ctx: &mut Self::Context) -> Self::Result {
-        let mut payload: Vec<Asset> = Vec::new();
-        self.assets.iter().for_each(|asset| {
-            if asset.get_owner().is_some() && asset.get_owner().as_ref().unwrap() == &msg.0 {
-                payload.push(asset.clone());
-            }
-        });
+        MessageResult(self.get_peer_assets(&msg.0))
+    }
+}
 
-        MessageResult(payload.to_owned())
+impl Handler<SetStake> for AssetLedger {
+    type Result = ();
+
+    fn handle(&mut self, msg: SetStake, _ctx: &mut Self::Context) -> Self::Result {
+        let assets = self.get_peer_assets(&msg.peer_id);
+
+        let mut correct_stake: Vec<String> = Vec::new();
+
+        // checks if the asset hashes received are
+        // indeed owned by the peer ID received
+        // and filters assets accordingly
+        // Ideally, when a match isn't found
+        // an error must be returned
+        for stake in msg.stake.iter() {
+            let hash = assets.iter().find(|asset| {
+                if asset.get_hash() == stake {
+                    true
+                } else {
+                    false
+                }
+            });
+            if hash.is_some() {
+                correct_stake.push(hash.unwrap().get_hash().to_owned())
+            }
+        }
+
+        let stake = StakeBuilder::default()
+            .block_id(msg.block_id)
+            .stake(correct_stake)
+            .build()
+            .unwrap();
+
+        self.stake.push(stake);
+    }
+}
+
+impl Handler<GetStake> for AssetLedger {
+    type Result = MessageResult<GetStake>;
+
+    fn handle(&mut self, msg: GetStake, _ctx: &mut Self::Context) -> Self::Result {
+        let stake = self
+            .stake
+            .iter()
+            .find(|stake| if stake.block_id == msg.0 { true } else { false });
+        if stake.is_some() {
+            MessageResult(Some(stake.unwrap().to_owned()))
+        } else {
+            MessageResult(None)
+        }
     }
 }
 
@@ -597,6 +685,46 @@ mod tests {
         asset_addr.send(msg).await.unwrap();
         assets_for_me = asset_addr.send(GetPeerAssets("Me".into())).await.unwrap();
         assert_eq!(assets_for_me.len(), 5);
+    }
+
+    #[actix_rt::test]
+    async fn stake_works() {
+        let asset_addr = AssetLedger::generate().start();
+        let mut assets_for_me = asset_addr.send(GetPeerAssets("Me".into())).await.unwrap();
+
+        let network_size: usize = 3;
+
+        assert_eq!(assets_for_me.len(), 0);
+
+        let msg = InitNetworkBuilder::default()
+            .network_size(network_size)
+            .peer_id("Me".into())
+            .build()
+            .unwrap();
+        asset_addr.send(msg).await.unwrap();
+        assets_for_me = asset_addr.send(GetPeerAssets("Me".into())).await.unwrap();
+        let mut stake_id = Vec::new();
+        let mut count = 2;
+        assets_for_me.iter().for_each(|asset| {
+            if count > 0 {
+                stake_id.push(asset.get_hash().to_owned());
+                count -= 1;
+            }
+        });
+
+        let set_stake_msg = SetStakeBuilder::default()
+            .block_id(5)
+            .stake(stake_id)
+            .peer_id("Me".into())
+            .build()
+            .unwrap();
+
+        asset_addr.send(set_stake_msg.clone()).await.unwrap();
+
+        let stake = asset_addr.send(GetStake(5)).await.unwrap().unwrap();
+
+        assert_eq!(stake.block_id, set_stake_msg.block_id);
+        assert_eq!(stake.stake, set_stake_msg.stake);
     }
 
     #[test]

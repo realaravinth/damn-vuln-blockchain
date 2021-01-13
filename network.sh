@@ -27,10 +27,10 @@ kill_network(){
 
 help() {
 	cat << EOF
-	USAGE:
-	./network.sh
-		launch   launches network
-		kill     kills network
+USAGE:
+  ./network.sh
+  launch   launches network
+  kill     kills network
 EOF
 }
 

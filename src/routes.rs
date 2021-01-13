@@ -72,6 +72,14 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
     HttpResponse::Ok().json(assets)
 }
 
+//// asset dump
+//#[get("/stake")]
+//async fn assets_dump(data: web::Data<Config>) -> impl Responder {
+//    use damn_vuln_blockchain::asset::DumpLedger;
+//    let assets = data.asset_addr.send(DumpLedger).await.unwrap();
+//    HttpResponse::Ok().json(assets)
+//}
+
 // buy asset
 #[post("/assets/sell")]
 async fn sell(payload: web::Json<SellAsset>, data: web::Data<Config>) -> impl Responder {
@@ -86,6 +94,17 @@ async fn sell(payload: web::Json<SellAsset>, data: web::Data<Config>) -> impl Re
     {
         if let Some(owner) = asset_info.get_owner() {
             if owner != &data.peer_id {
+                // stake must be custom, the below
+                // valudation selection doesn't work
+                // I must get stake from all peers and the
+                // choose validator
+                // Steps:
+                // 1. Get stake from all(peer: if unspecified, return full stake)
+                // 2. Choose validator
+                // 3. Send transaction request
+                //
+                // maybe AssetLedger can have a second structure with stake
+                // for every block ID?
                 let validator = data
                     .asset_addr
                     .send(ChooseValidator)
