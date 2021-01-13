@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Mode",""]],"struct":[["Config",""]]});
+initSidebarItems({"enum":[["Mode",""]],"struct":[["Config",""],["GetMode",""],["ModeActor",""],["SetMode",""]]});

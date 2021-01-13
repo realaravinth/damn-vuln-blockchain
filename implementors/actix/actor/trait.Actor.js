@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["damn_vuln_blockchain"] = [{"text":"impl Actor for AssetLedger","synthetic":false,"types":[]},{"text":"impl Actor for Chain","synthetic":false,"types":[]},{"text":"impl Actor for Network","synthetic":false,"types":[]}];
+implementors["damn_vuln_blockchain"] = [{"text":"impl Actor for AssetLedger","synthetic":false,"types":[]},{"text":"impl Actor for Chain","synthetic":false,"types":[]},{"text":"impl Actor for ModeActor","synthetic":false,"types":[]},{"text":"impl Actor for Network","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
