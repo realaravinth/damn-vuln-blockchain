@@ -612,7 +612,7 @@
             .<span class="ident">set_tx</span>(<span class="string">&quot;Me&quot;</span>)
             .<span class="ident">set_rx</span>(<span class="string">&quot;You&quot;</span>)
             .<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">prev</span>)
-            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>)
+            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>.<span class="ident">get_hash</span>())
             .<span class="ident">build</span>();
         <span class="kw">let</span> <span class="ident">network_size</span> <span class="op">=</span> <span class="number">3</span>;
 
@@ -657,7 +657,7 @@
             .<span class="ident">set_tx</span>(<span class="string">&quot;Me&quot;</span>)
             .<span class="ident">set_rx</span>(<span class="string">&quot;You&quot;</span>)
             .<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">prev</span>)
-            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>)
+            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>.<span class="ident">get_hash</span>())
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">network_size</span> <span class="op">=</span> <span class="number">3</span>;
@@ -721,7 +721,7 @@
             .<span class="ident">set_tx</span>(<span class="string">&quot;Me&quot;</span>)
             .<span class="ident">set_rx</span>(<span class="string">&quot;You&quot;</span>)
             .<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">prev</span>)
-            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>)
+            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>.<span class="ident">get_hash</span>())
             .<span class="ident">build</span>();
 
         <span class="comment">//        let main_last_block_hash = chain_addr.send(GetLastBlock).await.unwrap().get_hash();</span>
@@ -752,7 +752,7 @@
             .<span class="ident">set_tx</span>(<span class="string">&quot;Me&quot;</span>)
             .<span class="ident">set_rx</span>(<span class="string">&quot;You&quot;</span>)
             .<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">prev</span>)
-            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>)
+            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>.<span class="ident">get_hash</span>())
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">network_size</span> <span class="op">=</span> <span class="number">3</span>;

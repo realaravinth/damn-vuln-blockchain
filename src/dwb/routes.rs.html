@@ -178,6 +178,66 @@
 <span id="175">175</span>
 <span id="176">176</span>
 <span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -201,10 +261,11 @@
     <span class="ident">web</span>::{<span class="self">self</span>, <span class="ident">ServiceConfig</span>},
     <span class="ident">HttpResponse</span>, <span class="ident">Responder</span>,
 };
-<span class="kw">use</span> <span class="ident">log</span>::<span class="ident">debug</span>;
 
 <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">config</span>::{<span class="ident">Config</span>, <span class="ident">GetMode</span>, <span class="ident">Mode</span>, <span class="ident">SetMode</span>};
-<span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">payload</span>::{<span class="ident">GetStake</span> <span class="kw">as</span> <span class="ident">PayloadGetStake</span>, <span class="ident">Peer</span>, <span class="ident">SellAsset</span>};
+<span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">payload</span>::{
+    <span class="ident">GetStake</span> <span class="kw">as</span> <span class="ident">PayloadGetStake</span>, <span class="ident">Peer</span>, <span class="ident">Tx</span>, <span class="ident">ValidateTx</span>, <span class="ident">ValidateTxBuilder</span>,
+};
 <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">Client</span>;
 
 <span class="comment">//#[post(&quot;/assets/buy&quot;)]</span>
@@ -212,7 +273,7 @@
 <span class="comment">//}</span>
 
 <span class="comment">// peer enrollment</span>
-<span class="attribute">#[<span class="ident">post</span>(<span class="string">&quot;/peer/enroll&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">post</span>(<span class="string">&quot;/peers/enroll&quot;</span>)]</span>
 <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">peer_enroll</span>(<span class="ident">peer</span>: <span class="ident">web</span>::<span class="ident">Json</span><span class="op">&lt;</span><span class="ident">Peer</span><span class="op">&gt;</span>, <span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
     <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">asset</span>::<span class="ident">InitNetworkBuilder</span>;
     <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">discovery</span>::{<span class="ident">AddPeer</span>, <span class="ident">GetCurrentSize</span>};
@@ -239,7 +300,7 @@
 }
 
 <span class="comment">// peer enrollment</span>
-<span class="attribute">#[<span class="ident">get</span>(<span class="string">&quot;/peer/discover/all&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">get</span>(<span class="string">&quot;/peers/all&quot;</span>)]</span>
 <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">peer_dump</span>(<span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
     <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">discovery</span>::<span class="ident">DumpPeer</span>;
     <span class="kw">let</span> <span class="ident">peer_data</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">network_addr</span>.<span class="ident">send</span>(<span class="ident">DumpPeer</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
@@ -254,11 +315,19 @@
     <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">json</span>(<span class="ident">assets</span>)
 }
 
+<span class="comment">// chain dump</span>
+<span class="attribute">#[<span class="ident">get</span>(<span class="string">&quot;/chain/all&quot;</span>)]</span>
+<span class="ident">async</span> <span class="kw">fn</span> <span class="ident">chain_dump</span>(<span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
+    <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">chain</span>::<span class="ident">DumpLedger</span>;
+    <span class="kw">let</span> <span class="ident">chain</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">chain_addr</span>.<span class="ident">send</span>(<span class="ident">DumpLedger</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
+    <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">json</span>(<span class="ident">chain</span>)
+}
+
 <span class="comment">// attack</span>
 <span class="attribute">#[<span class="ident">post</span>(<span class="string">&quot;/attack&quot;</span>)]</span>
 <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">set_attack</span>(<span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
     <span class="kw">let</span> <span class="ident">current_mode</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">mode_addr</span>.<span class="ident">send</span>(<span class="ident">GetMode</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
-    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;current mode: {:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">current_mode</span>);
+    <span class="ident">data</span>.<span class="ident">debug</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;current mode: {:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">current_mode</span>));
     <span class="kw">let</span> <span class="ident">new_mode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">current_mode</span> {
         <span class="ident">Mode</span>::<span class="ident">Attacker</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Mode</span>::<span class="ident">Attacker</span>(<span class="op">!</span><span class="ident">val</span>)),
         <span class="ident">Mode</span>::<span class="ident">Victim</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Mode</span>::<span class="ident">Victim</span>(<span class="op">!</span><span class="ident">val</span>)),
@@ -266,7 +335,7 @@
     };
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mode</span>) <span class="op">=</span> <span class="ident">new_mode</span> {
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;changing mode to: {:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">mode</span>);
+        <span class="ident">data</span>.<span class="ident">debug</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;changing mode to: {:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">mode</span>));
         <span class="ident">data</span>.<span class="ident">mode_addr</span>.<span class="ident">send</span>(<span class="ident">SetMode</span>(<span class="ident">mode</span>)).<span class="ident">await</span>.<span class="ident">unwrap</span>();
     }
     <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()
@@ -294,11 +363,11 @@
     <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">json</span>(<span class="ident">stake</span>)
 }
 
-<span class="comment">// buy asset</span>
+<span class="comment">// sell asset</span>
 <span class="attribute">#[<span class="ident">post</span>(<span class="string">&quot;/assets/sell&quot;</span>)]</span>
 <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">sell</span>(
     <span class="ident">client</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Client</span><span class="op">&gt;</span>,
-    <span class="ident">payload</span>: <span class="ident">web</span>::<span class="ident">Json</span><span class="op">&lt;</span><span class="ident">SellAsset</span><span class="op">&gt;</span>,
+    <span class="ident">payload</span>: <span class="ident">web</span>::<span class="ident">Json</span><span class="op">&lt;</span><span class="ident">Tx</span><span class="op">&gt;</span>,
     <span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
     <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">utils</span>::{<span class="ident">check_ownership</span>, <span class="ident">consensus</span>, <span class="ident">get_next_block_id</span>};
@@ -306,8 +375,57 @@
     <span class="kw">if</span> <span class="ident">check_ownership</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">peer_id</span>, <span class="kw-2">&amp;</span><span class="ident">payload</span>.<span class="ident">asset_id</span>).<span class="ident">await</span> {
         <span class="kw">let</span> <span class="ident">next_block_id</span> <span class="op">=</span> <span class="ident">get_next_block_id</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>).<span class="ident">await</span>;
         <span class="kw">let</span> <span class="ident">validator</span> <span class="op">=</span> <span class="ident">consensus</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="ident">next_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">client</span>).<span class="ident">await</span>;
+        <span class="kw">let</span> <span class="ident">validator_payload</span> <span class="op">=</span> <span class="ident">ValidateTxBuilder</span>::<span class="ident">default</span>()
+            .<span class="ident">tx</span>(<span class="ident">payload</span>.<span class="ident">into_inner</span>())
+            .<span class="ident">seller_peer_id</span>(<span class="ident">data</span>.<span class="ident">peer_id</span>.<span class="ident">clone</span>())
+            .<span class="ident">build</span>()
+            .<span class="ident">unwrap</span>();
+        <span class="ident">client</span>
+            .<span class="ident">send_tx_to_validator</span>(<span class="kw-2">&amp;</span><span class="ident">validator</span>, <span class="kw-2">&amp;</span><span class="ident">validator_payload</span>)
+            .<span class="ident">await</span>;
     } <span class="kw">else</span> {
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Ownership not verified&quot;</span>);
+        <span class="ident">data</span>.<span class="ident">debug</span>(<span class="string">&quot;Ownership not verified&quot;</span>);
+    };
+
+    <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()
+}
+
+<span class="comment">// validate and create block</span>
+<span class="attribute">#[<span class="ident">post</span>(<span class="string">&quot;/block/validate&quot;</span>)]</span>
+<span class="ident">async</span> <span class="kw">fn</span> <span class="ident">validate</span>(
+    <span class="ident">client</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Client</span><span class="op">&gt;</span>,
+    <span class="ident">payload</span>: <span class="ident">web</span>::<span class="ident">Json</span><span class="op">&lt;</span><span class="ident">ValidateTx</span><span class="op">&gt;</span>,
+    <span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
+    <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">block</span>::<span class="ident">BlockBuilder</span>;
+
+    <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">chain</span>::<span class="ident">GetLastBlock</span>;
+    <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">utils</span>::<span class="kw-2">*</span>;
+
+    <span class="kw">if</span> <span class="ident">check_ownership</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="kw-2">&amp;</span><span class="ident">payload</span>.<span class="ident">seller_peer_id</span>, <span class="kw-2">&amp;</span><span class="ident">payload</span>.<span class="ident">tx</span>.<span class="ident">asset_id</span>).<span class="ident">await</span> {
+        <span class="kw">let</span> <span class="ident">next_block_id</span> <span class="op">=</span> <span class="ident">get_next_block_id</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>).<span class="ident">await</span>;
+        <span class="kw">let</span> <span class="ident">validator</span> <span class="op">=</span> <span class="ident">consensus</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="ident">next_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">client</span>).<span class="ident">await</span>;
+        <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">peer_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">validator</span>.<span class="ident">id</span> {
+            <span class="ident">data</span>.<span class="ident">debug</span>(<span class="string">&quot;Consensus verified, proceeding with block creation&quot;</span>);
+            <span class="comment">// 1. Create block</span>
+            <span class="comment">// 2. Change asset ownership</span>
+            <span class="comment">// 3. mutate validation assets and sold last transaction</span>
+            <span class="comment">// 4. add block to chain</span>
+            <span class="comment">// 5. broadcast</span>
+            <span class="kw">let</span> <span class="ident">last_block</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">chain_addr</span>.<span class="ident">send</span>(<span class="ident">GetLastBlock</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">new_block</span> <span class="op">=</span> <span class="ident">BlockBuilder</span>::<span class="ident">default</span>()
+                .<span class="ident">set_tx</span>(<span class="kw-2">&amp;</span><span class="ident">payload</span>.<span class="ident">seller_peer_id</span>)
+                .<span class="ident">set_rx</span>(<span class="kw-2">&amp;</span><span class="ident">payload</span>.<span class="ident">tx</span>.<span class="ident">buyer_peer_id</span>)
+                .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">payload</span>.<span class="ident">tx</span>.<span class="ident">asset_id</span>)
+                .<span class="ident">set_validator</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">peer_id</span>)
+                .<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">last_block</span>)
+                .<span class="ident">build</span>();
+            <span class="ident">add_block_runner</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="kw-2">&amp;</span><span class="ident">new_block</span>).<span class="ident">await</span>;
+        } <span class="kw">else</span> {
+            <span class="ident">data</span>.<span class="ident">debug</span>(<span class="string">&quot;Consensus failure&quot;</span>);
+        }
+    } <span class="kw">else</span> {
+        <span class="ident">data</span>.<span class="ident">debug</span>(<span class="string">&quot;Ownership not verified&quot;</span>);
     };
 
     <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()
@@ -320,6 +438,8 @@
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">get_stake</span>);
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">set_attack</span>);
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">sell</span>);
+    <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">chain_dump</span>);
+    <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">validate</span>);
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

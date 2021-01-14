@@ -308,6 +308,13 @@
 <span id="305">305</span>
 <span id="306">306</span>
 <span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -344,7 +351,7 @@
 <span class="doccomment">//!            .set_tx(&quot;Me&quot;)</span>
 <span class="doccomment">//!            .set_rx(&quot;You&quot;)</span>
 <span class="doccomment">//!            .set_prev(&amp;prev)</span>
-<span class="doccomment">//!            .set_asset_id(&amp;asset)</span>
+<span class="doccomment">//!            .set_asset_id(&amp;asset.get_hash())</span>
 <span class="doccomment">//!            .set_validator(&quot;Me&quot;)</span>
 <span class="doccomment">//!            .build();</span>
 <span class="doccomment">//!</span>
@@ -357,10 +364,9 @@
 <span class="kw">use</span> <span class="ident">derive_more</span>::<span class="ident">Display</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">asset</span>::<span class="ident">Asset</span>;
-
 <span class="doccomment">/// Builder struct for [Block]</span>
-
+<span class="comment">// custom  builder is required because</span>
+<span class="comment">// Option&lt;T&gt; is needed for genesis</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BlockBuilder</span> {
     <span class="doccomment">/// previous block&#39;s hash</span>
@@ -401,8 +407,8 @@
     }
 
     <span class="doccomment">/// set assset ID</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">assset</span>: <span class="kw-2">&amp;</span><span class="ident">Asset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">asset_id</span> <span class="op">=</span> <span class="ident">assset</span>.<span class="ident">get_hash</span>().<span class="ident">into</span>();
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">assset_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">asset_id</span> <span class="op">=</span> <span class="ident">assset_id</span>.<span class="ident">into</span>();
         <span class="self">self</span>
     }
 
@@ -430,6 +436,7 @@
                 <span class="ident">validator</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">validator</span>.<span class="ident">to_owned</span>()),
                 <span class="ident">timesamp</span>: <span class="ident">get_current_time</span>(),
                 <span class="ident">serial_no</span>: <span class="prelude-val">None</span>,
+                <span class="ident">asset_id</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">asset_id</span>.<span class="ident">to_owned</span>()),
             }
         }
     }
@@ -451,6 +458,7 @@
     <span class="ident">timesamp</span>: <span class="ident">String</span>,
     <span class="ident">validator</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="ident">serial_no</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="ident">asset_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Block</span> {
@@ -484,6 +492,7 @@
             <span class="ident">timesamp</span>: <span class="ident">get_current_time</span>(),
             <span class="ident">validator</span>: <span class="prelude-val">None</span>,
             <span class="ident">serial_no</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
+            <span class="ident">asset_id</span>: <span class="prelude-val">None</span>,
         }
     }
 
@@ -516,6 +525,11 @@
     <span class="doccomment">/// get hash of previous block</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_prev</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">prev</span>.<span class="ident">as_ref</span>()
+    }
+
+    <span class="doccomment">/// get hash of previous block</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_asset_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">String</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">asset_id</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// get hash of block</span>
@@ -572,7 +586,7 @@
             .<span class="ident">set_tx</span>(<span class="string">&quot;Me&quot;</span>)
             .<span class="ident">set_rx</span>(<span class="string">&quot;You&quot;</span>)
             .<span class="ident">set_prev</span>(<span class="kw-2">&amp;</span><span class="ident">prev</span>)
-            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>)
+            .<span class="ident">set_asset_id</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>.<span class="ident">get_hash</span>())
             .<span class="ident">build</span>();
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">is_genesis</span>(), <span class="bool-val">false</span>, <span class="string">&quot;non-genesis block identified&quot;</span>);

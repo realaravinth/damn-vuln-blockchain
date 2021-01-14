@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["services",""]],"struct":[["assets_dump",""],["get_stake",""],["peer_dump",""],["peer_enroll",""],["sell",""],["set_attack",""]]});
+initSidebarItems({"fn":[["services",""]],"struct":[["assets_dump",""],["chain_dump",""],["get_stake",""],["peer_dump",""],["peer_enroll",""],["sell",""],["set_attack",""],["validate",""]]});

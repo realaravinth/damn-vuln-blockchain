@@ -236,6 +236,18 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -254,7 +266,7 @@
 * along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
 */</span>
 <span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">log</span>::<span class="ident">info</span>;
+<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">info</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">asset</span>::<span class="ident">AssetLedger</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">chain</span>::<span class="ident">Chain</span>;
@@ -281,7 +293,7 @@
     <span class="doccomment">/// mounting attack, i.e, when</span>
     <span class="doccomment">/// maximum stake is required</span>
     <span class="ident">Attacker</span>(<span class="ident">bool</span>),
-    <span class="doccomment">/// set Attacker = true when</span>
+    <span class="doccomment">/// set Victim = true when</span>
     <span class="doccomment">/// under attack</span>
     <span class="doccomment">/// This simulates DoS by</span>
     <span class="doccomment">/// not making any changes</span>
@@ -297,16 +309,28 @@
         <span class="ident">Config</span>::<span class="ident">cli</span>()
     }
 
+    <span class="doccomment">/// debug logging wrapper</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;[{}]: {}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">peer_id</span>, <span class="ident">msg</span>);
+    }
+
+    <span class="doccomment">/// info logging wrapper</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;[{}]: {}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">peer_id</span>, <span class="ident">msg</span>);
+    }
+
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
     <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">bootstrap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mode_addr</span>.<span class="ident">send</span>(<span class="ident">GetMode</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">Mode</span>::<span class="ident">Auditor</span> {
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Bootstrapping node&quot;</span>);
+            <span class="self">self</span>.<span class="ident">info</span>(<span class="string">&quot;Bootstrapping node&quot;</span>);
             <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client</span>::<span class="ident">default</span>();
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Enrolling peer&quot;</span>);
+            <span class="self">self</span>.<span class="ident">info</span>(<span class="string">&quot;Enrolling peer&quot;</span>);
             <span class="ident">client</span>.<span class="ident">peer_enroll</span>(<span class="kw-2">&amp;</span><span class="self">self</span>).<span class="ident">await</span>;
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Discovering peers in network&quot;</span>);
+            <span class="self">self</span>.<span class="ident">info</span>(<span class="string">&quot;Discovering peers in network&quot;</span>);
             <span class="ident">client</span>.<span class="ident">peer_discovery</span>(<span class="kw-2">&amp;</span><span class="self">self</span>).<span class="ident">await</span>;
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Bootstrapping assets&quot;</span>);
+            <span class="self">self</span>.<span class="ident">info</span>(<span class="string">&quot;Bootstrapping assets&quot;</span>);
             <span class="ident">client</span>.<span class="ident">get_all_assets</span>(<span class="kw-2">&amp;</span><span class="self">self</span>).<span class="ident">await</span>;
         }
     }
