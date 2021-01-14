@@ -76,11 +76,15 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
 // attack
 #[post("/attack")]
 async fn set_attack(data: web::Data<Config>) -> impl Responder {
-    if data.mode_addr.send(GetMode).await.unwrap() == Mode::Attacker(false) {
-        data.mode_addr
-            .send(SetMode(Mode::Attacker(true)))
-            .await
-            .unwrap();
+    let current_mode = data.mode_addr.send(GetMode).await.unwrap();
+    let new_mode = match current_mode {
+        Mode::Attacker(val) => Some(Mode::Attacker(!val)),
+        Mode::Victim(val) => Some(Mode::Victim(!val)),
+        _ => None,
+    };
+
+    if let Some(mode) = new_mode {
+        data.mode_addr.send(SetMode(mode)).await.unwrap();
     }
     HttpResponse::Ok()
 }
@@ -91,7 +95,9 @@ async fn get_stake(payload: web::Json<PayloadGetStake>, data: web::Data<Config>)
     use damn_vuln_blockchain::asset::{GetStake as ActorGetStake, SetStakeBuilder};
     let msg: ActorGetStake = payload.into_inner().into();
     // attacking peer should always return stake = 0
-    if data.mode_addr.send(GetMode).await.unwrap() == Mode::Attacker(false) {
+    let current_mode = data.mode_addr.send(GetMode).await.unwrap();
+
+    if current_mode == Mode::Attacker(false) || current_mode == Mode::Attacker(true) {
         let set_stake_msg = SetStakeBuilder::default()
             .block_id(msg.0)
             .peer_id(data.peer_id.clone())
@@ -102,7 +108,6 @@ async fn get_stake(payload: web::Json<PayloadGetStake>, data: web::Data<Config>)
     };
 
     let stake = data.asset_addr.send(msg).await.unwrap();
-
     HttpResponse::Ok().json(stake)
 }
 
@@ -127,39 +132,11 @@ async fn sell(
         if let Some(owner) = asset_info.get_owner() {
             if owner == &data.peer_id {
                 debug!("Ownership verified");
-                // stake must be custom, the below
-                // valudation selection doesn't work
-                // I must get stake from all peers and the
-                // choose validator
-                // Steps:
-                // 1. Get stake from all(peer: if unspecified, return full stake)
-                // 2. Choose validator
-                // 3. Send transaction request
-                //
-                // maybe AssetLedger can have a second structure with stake
-                // for every block ID?
-                //            let validator = data
-                //                .asset_addr
-                //                .send(ChooseValidator)
-                //                .await
-                //                .unwrap()
-                //                // unwrap below should be taken care of
-                //                // None occurs when there are no peers in
-                //                // the network
-                //                .unwrap();
-                //            let validator_peer = data
-                //                .network_addr
-                //                .send(GetPeer(validator))
-                //                .await
-                //                .unwrap()
-                //                .unwrap();
-                //            //TODO:
-                //            // 1. send peer the transaction request
 
                 let current_block = data.chain_addr.send(GetLastBlock).await.unwrap();
                 let next_block_id = current_block.get_serial_no().unwrap() + 1;
 
-                println!("{:?}", consensus(&data, next_block_id, &client).await);
+                let validator = consensus(&data, next_block_id, &client).await;
             }
         }
     } else {
@@ -176,4 +153,39 @@ pub fn services(cfg: &mut ServiceConfig) {
     cfg.service(get_stake);
     cfg.service(set_attack);
     cfg.service(sell);
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+    use actix_web::{dev::ServiceResponse, http::header, test, App};
+
+    #[cfg(test)]
+    pub async fn make_post_request(
+        config: &Config,
+        payload: Option<String>,
+        url: &str,
+    ) -> ServiceResponse {
+        let req;
+        if payload.is_some() {
+            req = test::TestRequest::post()
+                .uri(url)
+                .header(header::CONTENT_TYPE, "applicatin/json")
+                .set_payload(payload.unwrap());
+        } else {
+            req = test::TestRequest::post()
+                .uri(url)
+                .header(header::CONTENT_TYPE, "applicatin/json")
+        }
+        let mut app = test::init_service(App::new().configure(services).data(config.clone())).await;
+        test::call_service(&mut app, req.to_request()).await
+    }
+
+    #[cfg(test)]
+    pub async fn make_get_request(config: &Config, url: &str) -> ServiceResponse {
+        let req = test::TestRequest::get().uri(url).to_request();
+        let mut app = test::init_service(App::new().configure(services).data(config.clone())).await;
+
+        test::call_service(&mut app, req).await
+    }
 }

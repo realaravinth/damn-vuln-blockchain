@@ -527,10 +527,10 @@ impl Handler<GetStake> for AssetLedger {
     type Result = MessageResult<GetStake>;
 
     fn handle(&mut self, msg: GetStake, _ctx: &mut Self::Context) -> Self::Result {
-        let stake = self
-            .stake
-            .iter()
-            .find(|stake| if stake.block_id == msg.0 { true } else { false });
+        let stake =
+            self.stake
+                .iter()
+                .find(|stake| if stake.block_id == msg.0 { true } else { false });
         if stake.is_some() {
             MessageResult(stake.unwrap().to_owned())
         } else {

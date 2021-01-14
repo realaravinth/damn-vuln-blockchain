@@ -42,7 +42,13 @@ pub enum Mode {
     /// mounting attack, i.e, when
     /// maximum stake is required
     Attacker(bool),
-    Victim,
+    /// set Attacker = true when
+    /// under attack
+    /// This simulates DoS by
+    /// not making any changes
+    /// to local ledgers and returning
+    /// empty stake
+    Victim(bool),
     Normal,
 }
 
@@ -146,7 +152,7 @@ impl Config {
                 mode = Mode::Auditor;
                 asset_leger = AssetLedger::generate(&peer_id);
             }
-            "victim" => mode = Mode::Victim,
+            "victim" => mode = Mode::Victim(false),
 
             "attacker" => {
                 mode = Mode::Attacker(false)

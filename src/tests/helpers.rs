@@ -14,13 +14,13 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use actix::prelude::*;
 
 use crate::asset::AssetLedger;
 use crate::chain::Chain;
 use crate::config::{Config, Mode, ModeActor};
 use crate::discovery::Network;
 use crate::Client;
-use actix::prelude::*;
 
 pub fn generate_test_config() -> Config {
     let peer_id = "test.bastsense.net".into();

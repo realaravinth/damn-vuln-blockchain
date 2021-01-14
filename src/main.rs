@@ -65,6 +65,8 @@
 //!  launch   launches network
 //!  kill     kills network
 //!```
+use actix_web::{error::InternalError, http::StatusCode, web::JsonConfig};
+
 mod routes;
 #[cfg(test)]
 mod tests;
@@ -87,12 +89,16 @@ async fn main() -> std::io::Result<()> {
     let ip_addr = config.public_ip.clone();
 
     HttpServer::new(move || {
+        let log = &format!(
+            "[{}]{}",
+            &config.peer_id, "%a %r %s %b %{Referer}i %{User-Agent}i %T"
+        );
         App::new()
             .configure(routes::services)
             .data(config.clone())
             .data(Client::default())
             .app_data(get_json_err())
-            .wrap(Logger::default())
+            .wrap(Logger::new(log))
             .wrap(Compress::default())
             .wrap(NormalizePath::new(normalize::TrailingSlash::Trim))
     })
@@ -101,7 +107,6 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-use actix_web::{error::InternalError, http::StatusCode, web::JsonConfig};
 #[cfg(not(tarpaulin_include))]
 fn get_json_err() -> JsonConfig {
     JsonConfig::default().error_handler(|err, _| {

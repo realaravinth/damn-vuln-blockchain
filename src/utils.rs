@@ -57,6 +57,7 @@ pub fn get_current_time() -> String {
 //    unimplemented!()
 //}
 
+/// get stake from all peers in network and get the validator peer
 pub async fn consensus(config: &Config, block_id: usize, client: &Client) -> Peer {
     use crate::client::GetStake as ClientGetStake;
     use crate::discovery::DumpPeer;
@@ -83,7 +84,8 @@ pub async fn consensus(config: &Config, block_id: usize, client: &Client) -> Pee
     from_stake_to_validator(&config, stake).await
 }
 
-pub async fn from_stake_to_validator(config: &Config, all_stakes: Vec<(String, Stake)>) -> Peer {
+/// get validator peer from stakes of all peers
+async fn from_stake_to_validator(config: &Config, all_stakes: Vec<(String, Stake)>) -> Peer {
     use crate::discovery::GetPeer;
     let mut authenticated_stakes: Vec<Asset> = Vec::default();
     for (peer_id, stakes) in all_stakes.iter() {
