@@ -15,6 +15,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! Payload datatype that `dwb` uses
+use derive_builder::Builder;
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
@@ -36,15 +37,26 @@ pub struct Gossip {
     pub rx: Peer,
 }
 
-/// Sell asset payload
-#[derive(Deserialize, Serialize)]
-pub struct SellAsset {
+/// Transaction payload
+#[derive(Deserialize, Builder, Clone, Serialize)]
+pub struct Tx {
     /// asset ID
     pub asset_id: String,
+    /// buyer peer ID
+    pub buyer_peer_id: String,
 }
 
 /// Get stake payload
 #[derive(Deserialize, Serialize)]
 pub struct GetStake {
     pub block_id: usize,
+}
+
+/// Transaction payload
+#[derive(Deserialize, Builder, Serialize)]
+pub struct ValidateTx {
+    /// Transaction request
+    pub tx: Tx,
+    /// seller peer ID
+    pub seller_peer_id: String,
 }

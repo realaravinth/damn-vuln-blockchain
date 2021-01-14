@@ -19,3 +19,5 @@
 pub mod api_tests;
 #[cfg(test)]
 pub mod routes_enroll;
+#[cfg(test)]
+pub mod tx;

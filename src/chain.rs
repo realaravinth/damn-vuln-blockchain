@@ -216,7 +216,7 @@ mod tests {
             .set_tx("Me")
             .set_rx("You")
             .set_prev(&prev)
-            .set_asset_id(&asset)
+            .set_asset_id(&asset.get_hash())
             .build();
         let network_size = 3;
 
@@ -261,7 +261,7 @@ mod tests {
             .set_tx("Me")
             .set_rx("You")
             .set_prev(&prev)
-            .set_asset_id(&asset)
+            .set_asset_id(&asset.get_hash())
             .build();
 
         let network_size = 3;
@@ -325,7 +325,7 @@ mod tests {
             .set_tx("Me")
             .set_rx("You")
             .set_prev(&prev)
-            .set_asset_id(&asset)
+            .set_asset_id(&asset.get_hash())
             .build();
 
         //        let main_last_block_hash = chain_addr.send(GetLastBlock).await.unwrap().get_hash();
@@ -356,7 +356,7 @@ mod tests {
             .set_tx("Me")
             .set_rx("You")
             .set_prev(&prev)
-            .set_asset_id(&asset)
+            .set_asset_id(&asset.get_hash())
             .build();
 
         let network_size = 3;

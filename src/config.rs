@@ -15,7 +15,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use actix::prelude::*;
-use log::info;
+use log::{debug, info};
 
 use crate::asset::AssetLedger;
 use crate::chain::Chain;
@@ -58,16 +58,28 @@ impl Config {
         Config::cli()
     }
 
+    /// debug logging wrapper
+    #[cfg(not(tarpaulin_include))]
+    pub fn debug(&self, msg: &str) {
+        debug!("[{}]: {}", &self.peer_id, msg);
+    }
+
+    /// info logging wrapper
+    #[cfg(not(tarpaulin_include))]
+    pub fn info(&self, msg: &str) {
+        info!("[{}]: {}", &self.peer_id, msg);
+    }
+
     #[cfg(not(tarpaulin_include))]
     pub async fn bootstrap(&self) {
         if self.mode_addr.send(GetMode).await.unwrap() != Mode::Auditor {
-            info!("Bootstrapping node");
+            self.info("Bootstrapping node");
             let client = Client::default();
-            info!("Enrolling peer");
+            self.info("Enrolling peer");
             client.peer_enroll(&self).await;
-            info!("Discovering peers in network");
+            self.info("Discovering peers in network");
             client.peer_discovery(&self).await;
-            info!("Bootstrapping assets");
+            self.info("Bootstrapping assets");
             client.get_all_assets(&self).await;
         }
     }

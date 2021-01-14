@@ -33,7 +33,7 @@
 //!            .set_tx("Me")
 //!            .set_rx("You")
 //!            .set_prev(&prev)
-//!            .set_asset_id(&asset)
+//!            .set_asset_id(&asset.get_hash())
 //!            .set_validator("Me")
 //!            .build();
 //!
@@ -46,10 +46,9 @@
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
-use crate::asset::Asset;
-
 /// Builder struct for [Block]
-
+// custom  builder is required because
+// Option<T> is needed for genesis
 #[derive(Deserialize, Serialize, Clone, Debug, Default)]
 pub struct BlockBuilder {
     /// previous block's hash
@@ -90,8 +89,8 @@ impl BlockBuilder {
     }
 
     /// set assset ID
-    pub fn set_asset_id(&mut self, assset: &Asset) -> &mut Self {
-        self.asset_id = assset.get_hash().into();
+    pub fn set_asset_id(&mut self, assset_id: &str) -> &mut Self {
+        self.asset_id = assset_id.into();
         self
     }
 
@@ -119,6 +118,7 @@ impl BlockBuilder {
                 validator: Some(self.validator.to_owned()),
                 timesamp: get_current_time(),
                 serial_no: None,
+                asset_id: Some(self.asset_id.to_owned()),
             }
         }
     }
@@ -140,6 +140,7 @@ pub struct Block {
     timesamp: String,
     validator: Option<String>,
     serial_no: Option<usize>,
+    asset_id: Option<String>,
 }
 
 impl Block {
@@ -173,6 +174,7 @@ impl Block {
             timesamp: get_current_time(),
             validator: None,
             serial_no: Some(0),
+            asset_id: None,
         }
     }
 
@@ -205,6 +207,11 @@ impl Block {
     /// get hash of previous block
     pub fn get_prev(&self) -> Option<&String> {
         self.prev.as_ref()
+    }
+
+    /// get hash of previous block
+    pub fn get_asset_id(&self) -> Option<&String> {
+        self.asset_id.as_ref()
     }
 
     /// get hash of block
@@ -261,7 +268,7 @@ mod tests {
             .set_tx("Me")
             .set_rx("You")
             .set_prev(&prev)
-            .set_asset_id(&asset)
+            .set_asset_id(&asset.get_hash())
             .build();
 
         assert_eq!(block.is_genesis(), false, "non-genesis block identified");

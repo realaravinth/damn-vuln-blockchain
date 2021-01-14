@@ -50,7 +50,7 @@
 //!            .set_tx("Me")
 //!            .set_rx("You")
 //!            .set_prev(&prev)
-//!            .set_asset_id(&asset)
+//!            .set_asset_id(&asset.get_hash())
 //!            .set_validator("Me")
 //!            .build();
 //!

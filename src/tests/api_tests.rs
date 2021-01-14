@@ -19,7 +19,7 @@
 mod tests {
 
     use damn_vuln_blockchain::asset::DumpLedger;
-    use damn_vuln_blockchain::discovery::GetPeer;
+    use damn_vuln_blockchain::utils::*;
     use damn_vuln_blockchain::Client;
 
     use damn_vuln_blockchain::helpers::*;
@@ -38,13 +38,7 @@ mod tests {
 
         // checking if peer enrollment works
         assert_eq!(
-            config
-                .network_addr
-                .send(GetPeer("test.bastsense.net".into()))
-                .await
-                .unwrap()
-                .unwrap()
-                .ip,
+            get_peer(&config, "test.bastsense.net").await.ip,
             "localhost:7003",
             "peer_enroll and peer_discovery works"
         );

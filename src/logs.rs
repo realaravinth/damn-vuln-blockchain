@@ -16,7 +16,7 @@
 */
 
 use derive_more::Display;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::block::Block;
 use crate::payload::*;

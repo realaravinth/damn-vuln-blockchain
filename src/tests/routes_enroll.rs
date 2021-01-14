@@ -124,13 +124,13 @@ mod tests {
         let config = init_network(Mode::Auditor).await;
         // testing peer enrollemnt
 
-        let resp = make_post_request(&config, Some(payload), "/peer/enroll").await;
+        let resp = make_post_request(&config, Some(payload), "/peers/enroll").await;
         assert!(resp.status().is_success(), "peer enrollment is 200");
 
         // testing peer dump by getting the dump and comparing it against
         // the peer that was enrolled in the previous test
 
-        let resp = make_get_request(&config, "/peer/discover/all").await;
+        let resp = make_get_request(&config, "/peers/all").await;
         assert!(resp.status().is_success(), "peer dump is 200");
         let mut json_resp: Vec<Peer> = test::read_body_json(resp).await;
         assert_eq!(json_resp.pop().unwrap().ip, peer.ip, "peer dump works");

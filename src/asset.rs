@@ -25,6 +25,7 @@
 //! - [ReplaceLedger]: Replace the current ledger with another ledger, useful when
 //! - [ChooseValidator]: Choose validator based on coinage
 //! - [GetPeerAssets]: Get all the assets belonging to a peer
+//! - [SetLastTransation]: Set last transaction in which the asset was used
 //! - [SetStake]: Set stake for a block creation
 //! - [GetStake]: Get stake for a block  ID
 //! synchronising state
@@ -130,6 +131,7 @@ impl Asset {
 /// - [ReplaceLedger]: Replace the current ledger with another ledger, useful when
 /// - [ChooseValidator]: Choose validator based on coinage
 /// - [GetPeerAssets]: Get all the assets belonging to a peer
+/// - [SetLastTransation]: Set last transaction in which the asset was used
 /// - [SetStake]: Set stake for a block creation
 /// - [GetStake]: Get stake for a block  ID
 /// synchronising state
@@ -367,6 +369,14 @@ pub struct SetStake {
 #[rtype(result = "Stake")]
 pub struct GetStake(pub usize);
 
+/// Set last transaction ID in which asset was modified
+#[derive(Deserialize, Builder, Serialize, Message)]
+#[rtype(result = "()")]
+pub struct SetLastTransation {
+    pub tx: usize,
+    pub asset_id: String,
+}
+
 impl From<PayloadGetStake> for GetStake {
     fn from(msg: PayloadGetStake) -> Self {
         GetStake(msg.block_id)
@@ -538,6 +548,23 @@ impl Handler<GetStake> for AssetLedger {
 
             self.stake.push(stake.clone());
             MessageResult(stake)
+        }
+    }
+}
+
+impl Handler<SetLastTransation> for AssetLedger {
+    type Result = ();
+
+    fn handle(&mut self, msg: SetLastTransation, _ctx: &mut Self::Context) -> Self::Result {
+        let mut iter = self.assets.iter_mut();
+        loop {
+            if let Some(val) = iter.next() {
+                if val.get_hash() == msg.asset_id {
+                    val.set_last_transaction(msg.tx);
+                }
+            } else {
+                break;
+            }
         }
     }
 }
@@ -840,5 +867,38 @@ mod tests {
         });
 
         assert_eq!(stake, assets.default_stake())
+    }
+
+    #[actix_rt::test]
+    async fn set_last_tx_wors() {
+        let peer_id = "Me";
+        let asset_ledger = AssetLedger::generate(peer_id.into());
+        let assert_ledger_addr = asset_ledger.clone().start();
+
+        let dump = assert_ledger_addr.send(DumpLedger).await.unwrap();
+        let iter = dump.iter().zip(asset_ledger.assets.iter());
+
+        iter.for_each(|(a, b)| assert_eq!(a, b, "AssetLedger dump test"));
+
+        let hash = asset_ledger.assets.get(2).unwrap().get_hash();
+
+        let last_tx = 55;
+        let change_tx_msg = SetLastTransationBuilder::default()
+            .tx(last_tx)
+            .asset_id(hash.into())
+            .build()
+            .unwrap();
+
+        assert_ledger_addr.send(change_tx_msg).await.unwrap();
+        assert_eq!(
+            last_tx,
+            assert_ledger_addr
+                .send(GetAssetInfo(hash.into()))
+                .await
+                .unwrap()
+                .unwrap()
+                .get_last_transaction(),
+            "AssetLedger GetAssetInfo test"
+        );
     }
 }

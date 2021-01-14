@@ -80,8 +80,9 @@ The easiest way to spin up a cluster locally is using `./network.sh`.
 ```
 USAGE:
   ./network.sh
-  launch   launches network
-  kill     kills network
+  launch		 launches network
+		release  launches network with release binary
+  kill			 kills network
 ```
 
 ### Attack Scenario:

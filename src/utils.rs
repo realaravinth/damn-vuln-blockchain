@@ -15,11 +15,11 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use data_encoding::HEXUPPER;
-use log::debug;
 use sha2::{Digest, Sha256};
 
 use crate::asset::{Asset, AssetLedger, GetAssetInfo, Stake};
-use crate::payload::{GetStake, Peer, SellAsset};
+use crate::block::Block;
+use crate::payload::Peer;
 use crate::{Client, Config};
 
 /// helper function for generating sha256 hashes
@@ -69,7 +69,7 @@ pub async fn consensus(config: &Config, block_id: usize, client: &Client) -> Pee
             block_id,
             peer_id: peer.id.clone(),
         };
-        debug!("Requesting stake from peer {}", &peer.id);
+        config.debug(&format!("Requesting stake from peer {}", &peer.id));
 
         stake.push((
             peer.id.clone(),
@@ -84,9 +84,20 @@ pub async fn consensus(config: &Config, block_id: usize, client: &Client) -> Pee
     from_stake_to_validator(&config, stake).await
 }
 
+/// get peer utility
+pub async fn get_peer(config: &Config, peer_id: &str) -> Peer {
+    use crate::discovery::GetPeer;
+
+    config
+        .network_addr
+        .send(GetPeer(peer_id.into()))
+        .await
+        .unwrap()
+        .unwrap()
+}
+
 /// get validator peer from stakes of all peers
 async fn from_stake_to_validator(config: &Config, all_stakes: Vec<(String, Stake)>) -> Peer {
-    use crate::discovery::GetPeer;
     let mut authenticated_stakes: Vec<Asset> = Vec::default();
     for (peer_id, stakes) in all_stakes.iter() {
         for stake in stakes.stake.iter() {
@@ -105,20 +116,16 @@ async fn from_stake_to_validator(config: &Config, all_stakes: Vec<(String, Stake
         }
     }
 
-    debug!("Ownership verified");
+    config.debug("Ownership verified");
     let mut stake_ledger = AssetLedger::new("stake_ledger");
     stake_ledger.assets = authenticated_stakes;
     let validator_peer_id = stake_ledger.choose_validator().unwrap();
-    debug!("Validator: {}", &validator_peer_id);
+    config.debug(&format!("Validator: {}", &validator_peer_id));
 
-    config
-        .network_addr
-        .send(GetPeer(validator_peer_id))
-        .await
-        .unwrap()
-        .unwrap()
+    get_peer(&config, &validator_peer_id).await
 }
 
+/// check ownsership utility
 pub async fn check_ownership(config: &Config, owner: &str, asset_id: &str) -> bool {
     let asset_info = config
         .asset_addr
@@ -126,10 +133,10 @@ pub async fn check_ownership(config: &Config, owner: &str, asset_id: &str) -> bo
         .await
         .unwrap()
         .unwrap();
-    debug!("Owner: {:?}", asset_info.get_owner());
+    config.debug(&format!("Owner: {:?}", asset_info.get_owner()));
     if let Some(asset_owner) = asset_info.get_owner() {
         if asset_owner == owner {
-            debug!("Ownership verified");
+            config.debug("Ownership verified");
             true
         } else {
             false
@@ -139,6 +146,7 @@ pub async fn check_ownership(config: &Config, owner: &str, asset_id: &str) -> bo
     }
 }
 
+/// get next block ID utility
 pub async fn get_next_block_id(config: &Config) -> usize {
     use crate::chain::GetLastBlock;
     let current_block = config.chain_addr.send(GetLastBlock).await.unwrap();
@@ -148,6 +156,68 @@ pub async fn get_next_block_id(config: &Config) -> usize {
     } else {
         current_block.get_serial_no().unwrap() + 1
     }
+}
+
+/// add block utility. Performs the following steps:
+/// 1. Change asset ownership
+/// 2. mutate validation assets and sold last transaction
+/// 3. add block to chain
+pub async fn add_block_runner(config: &Config, client: &Client, block: &Block) {
+    use crate::asset::{ChangeAssetOwnerBuilder, SetLastTransationBuilder};
+    use crate::chain::AddBlock;
+    use crate::client::GetStake as ClientGetStake;
+
+    let next_block_id = get_next_block_id(&config).await;
+
+    // changing asset ownsership
+    config.debug(&format!(
+        "Chainging ownership of asset: {}",
+        block.get_asset_id().unwrap()
+    ));
+    let change_ownsership_msg = ChangeAssetOwnerBuilder::default()
+        .asset_id(block.get_asset_id().unwrap().into())
+        .new_owner(block.get_rx().unwrap().into())
+        .build()
+        .unwrap();
+    config.asset_addr.send(change_ownsership_msg).await.unwrap();
+
+    // changing coinage of the asset transacted
+    config.debug(&format!(
+        "Chainging coinage of asset: {}",
+        block.get_asset_id().unwrap()
+    ));
+    let change_tx_msg = SetLastTransationBuilder::default()
+        .tx(next_block_id)
+        .asset_id(block.get_asset_id().unwrap().into())
+        .build()
+        .unwrap();
+    config.asset_addr.send(change_tx_msg).await.unwrap();
+
+    // changing coinage of the assets staked by the validator
+    let client_payload = ClientGetStake {
+        peer_id: block.get_validator().unwrap().into(),
+        block_id: next_block_id,
+    };
+    let validator_stakes = client.get_stake(client_payload, &config).await;
+    for asset_id in validator_stakes.stake.iter() {
+        config.debug(&format!("Chainging coinage of asset: {}", &asset_id));
+
+        let change_tx_msg = SetLastTransationBuilder::default()
+            .tx(next_block_id)
+            .asset_id(asset_id.into())
+            .build()
+            .unwrap();
+        config.asset_addr.send(change_tx_msg).await.unwrap();
+    }
+
+    // adding block to chain
+    config.info(&format!("Adding block {} to chain", block.get_hash()));
+    config
+        .chain_addr
+        .send(AddBlock(block.to_owned(), config.init_network_size))
+        .await
+        .unwrap()
+        .unwrap();
 }
 
 #[cfg(test)]

@@ -17,54 +17,62 @@
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/realaravinth/damn-vuln-blockchain/master/assets/block.svg"
 )]
-//!### Usage:
-//!`Damn Vulnerable Blockchain` comes with a peer implementation called
-//!`dwb`. `dwb` supports three modes:
+
+//! ### Usage:
 //!
-//!| Mode     | Function                                                                                     |
-//!| -------- | -------------------------------------------------------------------------------------------- |
-//!| Attacker | Configured to fork the blockchain and perform a double spend. See                            |
-//!| Auditor  | This is a special peer that acts as the discovery node and mint. It should be spawned first. |
-//!| Victim   | This peer will be configured to take itself down when an attack command is issued.           |
-//!| Normal   | No special abilities, just an other node in the network                                      |
+//! `Damn Vulnerable Blockchain` comes with a peer implementation called
+//! `dwb`. `dwb` supports three modes:
+//!
+//! | Mode     | Function                                                                                     |
+//! | -------- | -------------------------------------------------------------------------------------------- |
+//! | Attacker | Configured to fork the blockchain and perform a double spend. See                            |
+//! | Auditor  | This is a special peer that acts as the discovery node and mint. It should be spawned first. |
+//! | Victim   | This peer will be configured to take itself down when an attack command is issued.           |
+//! | Normal   | No special abilities, just an other node in the network                                      |
 //!
 //!
-//!## `dwb` usage:
+//! #### `dwb` usage:
 //!
-//!```
-//!Damn Vulnerable Blockchain 0.1
-//!Aravinth Manivannan <realaravinth@batsense.net>
-//!A bloody vulnerable blockchain implementation
+//! ```
+//! Damn Vulnerable Blockchain 0.1
+//! Aravinth Manivannan <realaravinth@batsense.net>
+//! A bloody vulnerable blockchain implementation
 //!
-//!USAGE:
-//!    dwb --auditor <auditor> --mode <mode> --network-size <network_size> --name <peer_id> --public-ip <public_ip>
+//! USAGE:
+//!     dwb --auditor <auditor> --mode <mode> --network-size <network_size> --name <peer_id> --public-ip <public_ip>
 //!
-//!FLAGS:
-//!    -h, --help       Prints help information
-//!    -V, --version    Prints version information
+//! FLAGS:
+//!     -h, --help       Prints help information
+//!     -V, --version    Prints version information
 //!
-//!OPTIONS:
-//!    -a, --auditor <auditor>              address of auditor node
-//!    -m, --mode <mode>                    available modes:
-//!                                         	auditor
-//!                                         	normal
-//!                                         	attacker
-//!                                         	victim
-//!    -s, --network-size <network_size>    set intial network size
-//!    -n, --name <peer_id>                 set peer name
-//!    -i, --public-ip <public_ip>          set public IP
-//!```
+//! OPTIONS:
+//!     -a, --auditor <auditor>              address of auditor node
+//!     -m, --mode <mode>                    available modes:
+//!                                          	auditor
+//!                                          	normal
+//!                                          	attacker
+//!                                          	victim
+//!     -s, --network-size <network_size>    set intial network size
+//!     -n, --name <peer_id>                 set peer name
+//!     -i, --public-ip <public_ip>          set public IP
+//! ```
 //!
-//!## Spinning up a cluster:
+//! #### Spinning up a cluster:
 //!
-//!The easiest way to spin up a cluster locally is using `./network.sh`.
+//! The easiest way to spin up a cluster locally is using `./network.sh`.
 //!
-//!```
-//!USAGE:
-//!  ./network.sh
-//!  launch   launches network
-//!  kill     kills network
-//!```
+//! ```
+//! USAGE:
+//!   ./network.sh
+//!   launch		 launches network
+//! 		release  launches network with release binary
+//!   kill			 kills network
+//! ```
+//!
+//! ### Attack Scenario:
+//!
+//! TODO
+
 use actix_web::{error::InternalError, http::StatusCode, web::JsonConfig};
 
 mod routes;
@@ -90,7 +98,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let log = &format!(
-            "[{}]{}",
+            "[{}]: {}",
             &config.peer_id, "%a %r %s %b %{Referer}i %{User-Agent}i %T"
         );
         App::new()

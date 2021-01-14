@@ -20,10 +20,11 @@ use actix_web::{
     web::{self, ServiceConfig},
     HttpResponse, Responder,
 };
-use log::debug;
 
 use damn_vuln_blockchain::config::{Config, GetMode, Mode, SetMode};
-use damn_vuln_blockchain::payload::{GetStake as PayloadGetStake, Peer, SellAsset};
+use damn_vuln_blockchain::payload::{
+    GetStake as PayloadGetStake, Peer, Tx, ValidateTx, ValidateTxBuilder,
+};
 use damn_vuln_blockchain::Client;
 
 //#[post("/assets/buy")]
@@ -31,7 +32,7 @@ use damn_vuln_blockchain::Client;
 //}
 
 // peer enrollment
-#[post("/peer/enroll")]
+#[post("/peers/enroll")]
 async fn peer_enroll(peer: web::Json<Peer>, data: web::Data<Config>) -> impl Responder {
     use damn_vuln_blockchain::asset::InitNetworkBuilder;
     use damn_vuln_blockchain::discovery::{AddPeer, GetCurrentSize};
@@ -58,7 +59,7 @@ async fn peer_enroll(peer: web::Json<Peer>, data: web::Data<Config>) -> impl Res
 }
 
 // peer enrollment
-#[get("/peer/discover/all")]
+#[get("/peers/all")]
 async fn peer_dump(data: web::Data<Config>) -> impl Responder {
     use damn_vuln_blockchain::discovery::DumpPeer;
     let peer_data = data.network_addr.send(DumpPeer).await.unwrap();
@@ -73,11 +74,19 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
     HttpResponse::Ok().json(assets)
 }
 
+// chain dump
+#[get("/chain/all")]
+async fn chain_dump(data: web::Data<Config>) -> impl Responder {
+    use damn_vuln_blockchain::chain::DumpLedger;
+    let chain = data.chain_addr.send(DumpLedger).await.unwrap();
+    HttpResponse::Ok().json(chain)
+}
+
 // attack
 #[post("/attack")]
 async fn set_attack(data: web::Data<Config>) -> impl Responder {
     let current_mode = data.mode_addr.send(GetMode).await.unwrap();
-    debug!("current mode: {:?}", &current_mode);
+    data.debug(&format!("current mode: {:?}", &current_mode));
     let new_mode = match current_mode {
         Mode::Attacker(val) => Some(Mode::Attacker(!val)),
         Mode::Victim(val) => Some(Mode::Victim(!val)),
@@ -85,7 +94,7 @@ async fn set_attack(data: web::Data<Config>) -> impl Responder {
     };
 
     if let Some(mode) = new_mode {
-        debug!("changing mode to: {:?}", &mode);
+        data.debug(&format!("changing mode to: {:?}", &mode));
         data.mode_addr.send(SetMode(mode)).await.unwrap();
     }
     HttpResponse::Ok()
@@ -113,11 +122,11 @@ async fn get_stake(payload: web::Json<PayloadGetStake>, data: web::Data<Config>)
     HttpResponse::Ok().json(stake)
 }
 
-// buy asset
+// sell asset
 #[post("/assets/sell")]
 async fn sell(
     client: web::Data<Client>,
-    payload: web::Json<SellAsset>,
+    payload: web::Json<Tx>,
     data: web::Data<Config>,
 ) -> impl Responder {
     use damn_vuln_blockchain::utils::{check_ownership, consensus, get_next_block_id};
@@ -125,8 +134,57 @@ async fn sell(
     if check_ownership(&data, &data.peer_id, &payload.asset_id).await {
         let next_block_id = get_next_block_id(&data).await;
         let validator = consensus(&data, next_block_id, &client).await;
+        let validator_payload = ValidateTxBuilder::default()
+            .tx(payload.into_inner())
+            .seller_peer_id(data.peer_id.clone())
+            .build()
+            .unwrap();
+        client
+            .send_tx_to_validator(&validator, &validator_payload)
+            .await;
     } else {
-        debug!("Ownership not verified");
+        data.debug("Ownership not verified");
+    };
+
+    HttpResponse::Ok()
+}
+
+// validate and create block
+#[post("/block/validate")]
+async fn validate(
+    client: web::Data<Client>,
+    payload: web::Json<ValidateTx>,
+    data: web::Data<Config>,
+) -> impl Responder {
+    use damn_vuln_blockchain::block::BlockBuilder;
+
+    use damn_vuln_blockchain::chain::GetLastBlock;
+    use damn_vuln_blockchain::utils::*;
+
+    if check_ownership(&data, &payload.seller_peer_id, &payload.tx.asset_id).await {
+        let next_block_id = get_next_block_id(&data).await;
+        let validator = consensus(&data, next_block_id, &client).await;
+        if data.peer_id == validator.id {
+            data.debug("Consensus verified, proceeding with block creation");
+            // 1. Create block
+            // 2. Change asset ownership
+            // 3. mutate validation assets and sold last transaction
+            // 4. add block to chain
+            // 5. broadcast
+            let last_block = data.chain_addr.send(GetLastBlock).await.unwrap();
+            let new_block = BlockBuilder::default()
+                .set_tx(&payload.seller_peer_id)
+                .set_rx(&payload.tx.buyer_peer_id)
+                .set_asset_id(&payload.tx.asset_id)
+                .set_validator(&data.peer_id)
+                .set_prev(&last_block)
+                .build();
+            add_block_runner(&data, &client, &new_block).await;
+        } else {
+            data.debug("Consensus failure");
+        }
+    } else {
+        data.debug("Ownership not verified");
     };
 
     HttpResponse::Ok()
@@ -139,6 +197,8 @@ pub fn services(cfg: &mut ServiceConfig) {
     cfg.service(get_stake);
     cfg.service(set_attack);
     cfg.service(sell);
+    cfg.service(chain_dump);
+    cfg.service(validate);
 }
 
 #[cfg(test)]

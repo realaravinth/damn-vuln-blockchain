@@ -17,24 +17,27 @@
 //! Client wrapper for p2p communication
 
 use actix_web::client::Client as awc;
-use log::{debug, info};
 use serde::{Deserialize, Serialize};
 
 use crate::asset::{Asset, ReplaceLedger, Stake};
+use crate::block::Block;
 use crate::config::Config;
 use crate::discovery::AddPeer;
-use crate::payload::Peer;
+use crate::payload::{Peer, Tx, ValidateTx};
+use crate::utils::*;
 //use crate::logs::SellAsset;
 
 // NOTE these URLs are subject to change
 // if tests are failing, come check the URLs
 // here
-const PEER_ENROLL: &str = "/peer/enroll";
-const PEER_DISCOVER_ALL: &str = "/peer/discover/all";
+const PEER_ENROLL: &str = "/peers/enroll";
+const PEER_DISCOVER_ALL: &str = "/peers/all";
 const GET_ALL_ASSETS: &str = "/assets/all";
 const SELL_ASSET: &str = "/assets/sell";
 const GET_STAKE: &str = "/stake";
 const SET_ATTACK: &str = "/attack";
+const GET_CHAIN: &str = "/chain/all";
+const SEND_VALIDATOR_TX: &str = "/block/validate";
 
 /// Client wrapper for p2p communication
 #[derive(Clone, Default)]
@@ -67,34 +70,23 @@ impl Client {
 
     /// set attack
     pub async fn set_attack(&self, config: &Config) {
-        use crate::discovery::GetPeer;
-
-        let attack_peer = config
-            .network_addr
-            .send(GetPeer("attacker.batsense.net".into()))
-            .await
-            .unwrap()
-            .unwrap();
-        println!("Attack Peer: {:#?}", &attack_peer);
-        let addr = Client::make_uri(&attack_peer.ip, SET_ATTACK);
-        self.client.post(addr).send().await.unwrap();
+        for peer in ["attacker", "victim"].iter() {
+            config.info(&format!("Setting {} peer in mode", &peer));
+            let attack_peer = get_peer(&config, &format!("{}.batsense.net", peer)).await;
+            let addr = Client::make_uri(&attack_peer.ip, SET_ATTACK);
+            self.client.post(addr).send().await.unwrap();
+        }
     }
 
     /// get stake for a block
     pub async fn get_stake(&self, peer: GetStake, config: &Config) -> Stake {
-        use crate::discovery::GetPeer;
         use crate::payload::GetStake as PayloadGetStake;
 
         let payload = PayloadGetStake {
             block_id: peer.block_id,
         };
 
-        let peer_addr = config
-            .network_addr
-            .send(GetPeer(peer.peer_id))
-            .await
-            .unwrap()
-            .unwrap();
+        let peer_addr = get_peer(&config, &peer.peer_id).await;
         let addr = Client::make_uri(&peer_addr.ip, GET_STAKE);
         loop {
             if let Ok(mut val) = self
@@ -122,7 +114,7 @@ impl Client {
         let addr = Client::make_uri(&config.auditor_node, PEER_DISCOVER_ALL);
         loop {
             if let Ok(mut val) = self.client.get(&addr).send().await {
-                debug!("Peer discovery request success");
+                config.debug("Peer discovery request success");
                 let peers: Result<Vec<Peer>, _> = val.json().await;
                 if let Ok(val) = peers {
                     for peer in val.iter() {
@@ -141,40 +133,65 @@ impl Client {
         let addr = Client::make_uri(&config.auditor_node, GET_ALL_ASSETS);
         loop {
             if let Ok(mut val) = self.client.get(&addr).send().await {
-                debug!("Asset request success");
+                config.debug("Asset request success");
                 let peers: Result<Vec<Asset>, _> = val.json().await;
                 if let Ok(val) = peers {
-                    debug!("Asset deserialization success");
+                    config.debug("Asset deserialization success");
                     config.asset_addr.send(ReplaceLedger(val)).await;
                     break;
                 }
             }
         }
     }
-}
 
-///// sells an asset
-//    pub async fn sell_asset(&mut self, config: &Config, asset_id: String) {
-//        let asset = SellAsset { asset_id };
-//
-//        unimplemented!("need to implement buy asset workflow");
-//        loop {
-//            if let Ok(mut val) = self
-//                .client
-//                .post(format!("{}/{}", &config.auditor_node, SELL_ASSET))
-//                .header("content-type", "application/json")
-//                .send_json(&asset)
-//                .await
-//            {
-//                // TODO
-//                //            let peers: Result<Vec<Peer>, _> = val.json().await;
-//                //            if let Ok(val) = peers {
-//                //                for peer in val.iter() {
-//                //                    config.network_addr.send(AddPeer(peer.to_owned())).await;
-//                //                }
-//                //                break;
-//                //            }
-//            }
-//        }
-//    }
-//}
+    /// send Tx request to validator
+    pub async fn send_tx_to_validator(&self, validator: &Peer, payload: &ValidateTx) {
+        let addr = Client::make_uri(&validator.ip, SEND_VALIDATOR_TX);
+
+        loop {
+            if let Ok(_) = self
+                .client
+                .post(&addr)
+                .header("content-type", "application/json")
+                .send_json(&payload)
+                .await
+            {
+                break;
+            }
+        }
+    }
+
+    /// send Tx request to validator
+    pub async fn sell_asset(&self, config: &Config, seller_id: &str, payload: &Tx) {
+        let seller = get_peer(&config, seller_id).await;
+        let addr = Client::make_uri(&seller.ip, SELL_ASSET);
+
+        loop {
+            if let Ok(_) = self
+                .client
+                .post(&addr)
+                .header("content-type", "application/json")
+                .send_json(&payload)
+                .await
+            {
+                break;
+            }
+        }
+    }
+
+    /// Get chain dump
+    pub async fn get_chain(&self, config: &Config, peer_id: &str) -> Vec<Block> {
+        let peer = get_peer(&config, peer_id).await;
+        let addr = Client::make_uri(&peer.ip, GET_CHAIN);
+
+        loop {
+            if let Ok(mut val) = self.client.get(&addr).send().await {
+                config.debug("Chain dump request success");
+                let blocks: Result<Vec<Block>, _> = val.json().await;
+                if let Ok(blocks) = blocks {
+                    return blocks;
+                }
+            }
+        }
+    }
+}
