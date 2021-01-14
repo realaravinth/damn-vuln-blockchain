@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["generate_test_config",""],["non_register_bootstrap",""]]});

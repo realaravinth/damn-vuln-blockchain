@@ -76,6 +76,7 @@
 <span id="73">73</span>
 <span id="74">74</span>
 <span id="75">75</span>
+<span id="76">76</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -146,10 +147,11 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">config</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">discovery</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
+<span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;./tests/helpers.rs&quot;</span>]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">helpers</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">logs</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">payload</span>;
-<span class="kw">mod</span> <span class="ident">utils</span>;
-
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">utils</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">client</span>::<span class="ident">Client</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">config</span>::<span class="ident">Config</span>;
 </pre></div>
