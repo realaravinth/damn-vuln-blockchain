@@ -24,15 +24,25 @@ mod tests {
     use damn_vuln_blockchain::Client;
     use damn_vuln_blockchain::Config;
 
+    async fn sync(config: Config) {
+        config.sync().await;
+    }
+
     #[actix_rt::test]
     pub async fn race_cond_test() {
         let config = generate_test_config();
+        actix::spawn(sync(config.clone()));
 
         let client = Client::default();
         non_register_bootstrap(&config, &client).await;
 
         tx_works(&config, &client).await;
+        use actix::clock::delay_for;
+        use std::time::Duration;
+        let duration = Duration::from_millis(5000);
+        delay_for(duration).await;
+
         // blocking on sync
-        // stake_toggle_test(&config, &client).await;
+        stake_toggle_test(&config, &client).await;
     }
 }

@@ -194,4 +194,39 @@ impl Client {
             }
         }
     }
+
+    /// gets list of peers from auditor, should be called periodically
+    pub async fn peer_dump(&self, config: &Config) -> Vec<Peer> {
+        // gets peers from Auditor and replaces peers
+        // in local Network
+        let addr = Client::make_uri(&config.auditor_node, PEER_DISCOVER_ALL);
+        loop {
+            if let Ok(mut val) = self.client.get(&addr).send().await {
+                config.debug("Peer discovery request success");
+                let peers: Result<Vec<Peer>, _> = val.json().await;
+                if let Ok(val) = peers {
+                    return val;
+                }
+            }
+        }
+    }
+
+    /// gets asset ledger from auditor node, should be called periodically
+    pub async fn get_peer_assets(&self, config: &Config, peer: &Peer) {
+        // gets assets from Auditor and replaces assets
+        // in local AssetsLedger
+
+        let addr = Client::make_uri(&peer.ip, GET_ALL_ASSETS);
+        loop {
+            if let Ok(mut val) = self.client.get(&addr).send().await {
+                config.debug("Asset request success");
+                let peers: Result<Vec<Asset>, _> = val.json().await;
+                if let Ok(val) = peers {
+                    config.debug("Asset deserialization success");
+                    config.asset_addr.send(ReplaceLedger(val)).await;
+                    break;
+                }
+            }
+        }
+    }
 }

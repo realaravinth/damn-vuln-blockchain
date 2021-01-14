@@ -192,6 +192,48 @@ impl Config {
     }
 }
 
+//impl Actor for Config {
+//    type Context = Context<Self>;
+//}
+//
+//#[derive(Message)]
+//#[rtype(result = "()")]
+//pub struct Sync;
+//
+//impl Handler<Sync> for Config {
+//    type Result = ();
+//    fn handle(&mut self, _msg: Sync, ctx: &mut Self::Context) -> Self::Result {
+impl Config {
+    pub async fn sync(&self) {
+        use crate::chain::{DumpLedger as ChainDump, ReplaceChain};
+        use crate::discovery::{DumpPeer, ReplacePeerLedger};
+        use actix::clock::delay_for;
+        use std::time::Duration;
+        let duration = Duration::from_millis(500);
+
+        loop {
+            let client = Client::default();
+            let peers = self.network_addr.send(DumpPeer).await.unwrap();
+            for peer in peers.iter() {
+                delay_for(duration).await;
+                let chain = client.get_chain(&self, &peer.id).await;
+                let current_chain = self.chain_addr.send(ChainDump).await.unwrap();
+                if current_chain.len() < chain.len() {
+                    self.chain_addr.send(ReplaceChain(chain)).await;
+                    client.get_peer_assets(&self, peer).await;
+                }
+
+                let peers_upadate = client.peer_dump(&self).await;
+                if peers.len() < peers_upadate.len() {
+                    self.network_addr
+                        .send(ReplacePeerLedger(peers_upadate))
+                        .await;
+                }
+            }
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct ModeActor {
     pub mode: Mode,

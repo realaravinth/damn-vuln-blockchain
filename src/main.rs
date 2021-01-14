@@ -96,7 +96,10 @@ async fn main() -> std::io::Result<()> {
     config.bootstrap().await;
     let ip_addr = config.public_ip.clone();
 
-    HttpServer::new(move || {
+    let clone_config = config.clone();
+    let sync_fut = clone_config.sync();
+
+    let server_fut = HttpServer::new(move || {
         let log = &format!(
             "[{}]: {}",
             &config.peer_id, "%a %r %s %b %{Referer}i %{User-Agent}i %T"
@@ -110,9 +113,12 @@ async fn main() -> std::io::Result<()> {
             .wrap(Compress::default())
             .wrap(NormalizePath::new(normalize::TrailingSlash::Trim))
     })
-    .bind(ip_addr)?
-    .run()
-    .await
+    .bind(ip_addr)
+    .unwrap()
+    .run();
+
+    futures::join!(server_fut, sync_fut);
+    Ok(())
 }
 
 #[cfg(not(tarpaulin_include))]

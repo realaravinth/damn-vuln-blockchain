@@ -23,6 +23,7 @@
 //! - [AddPeer]: Add a peer to the network
 //! - [DumpPeer]: Get a dump of all peers in the network
 //! - [GetPeer]: Get ingo on a specific peer
+//! - [ReplacePeerLedger]: Replace peer ledger
 
 use actix::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -57,6 +58,11 @@ pub struct GetPeer(pub String);
 #[derive(Message)]
 #[rtype(result = "usize")]
 pub struct GetCurrentSize;
+
+/// Get peer of ID
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct ReplacePeerLedger(pub Vec<Peer>);
 
 impl Network {
     fn get_peer_index(&self, id: &str) -> Option<usize> {
@@ -108,6 +114,14 @@ impl Handler<GetCurrentSize> for Network {
 
     fn handle(&mut self, _msg: GetCurrentSize, _ctx: &mut Self::Context) -> Self::Result {
         MessageResult(self.peer.len())
+    }
+}
+
+impl Handler<ReplacePeerLedger> for Network {
+    type Result = ();
+
+    fn handle(&mut self, msg: ReplacePeerLedger, _ctx: &mut Self::Context) -> Self::Result {
+        self.peer = msg.0
     }
 }
 

@@ -26,9 +26,9 @@ launch_release() {
 
 
 kill_network(){
-	kill $(pidof auditor)
-	kill $(pidof attacker)
-	kill $(pidof victim)
+	kill -9 $(pidof auditor)
+	kill -9 $(pidof attacker)
+	kill -9 $(pidof victim)
 #	kill $(pidof normal)
 }
 
