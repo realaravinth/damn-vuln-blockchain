@@ -46,7 +46,7 @@ pub struct Client {
 }
 
 /// Get stake using client
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct GetStake {
     pub block_id: usize,
     pub peer_id: String,

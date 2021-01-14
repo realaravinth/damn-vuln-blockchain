@@ -77,44 +77,8 @@ mod tests {
     }
 
     #[actix_rt::test]
-    async fn get_stake_victim_peer() {
-        use damn_vuln_blockchain::asset::{GetPeerAssets, Stake};
-
-        use damn_vuln_blockchain::client::GetStake;
-
-        let config = generate_test_config();
-
-        let client = Client::default();
-        non_register_bootstrap(&config, &client).await;
-
-        // testing victim client
-        let stake_peer_id = "victim.batsense.net";
-        let assets_for_me = config
-            .asset_addr
-            .send(GetPeerAssets(stake_peer_id.to_owned()))
-            .await
-            .unwrap();
-
-        let mut default_stake_id: Vec<String> = Vec::new();
-        assets_for_me.iter().for_each(|asset| {
-            default_stake_id.push(asset.get_hash().to_owned());
-        });
-
-        let block_id = 9999;
-
-        let client_msg = GetStake {
-            block_id,
-            peer_id: stake_peer_id.into(),
-        };
-
-        let stake: Stake = client.get_stake(client_msg, &config).await;
-        assert_eq!(stake.block_id, block_id);
-        assert_eq!(stake.stake, default_stake_id);
-    }
-
-    #[actix_rt::test]
     async fn get_stake_attacker_peer() {
-        use damn_vuln_blockchain::asset::{GetPeerAssets, Stake};
+        use damn_vuln_blockchain::asset::Stake;
         use damn_vuln_blockchain::client::GetStake;
 
         let config = generate_test_config();
@@ -123,39 +87,41 @@ mod tests {
         non_register_bootstrap(&config, &client).await;
 
         // testing attakcing peer when Mode::Attacker(false)
-        let stake_peer_id = "attacker.batsense.net";
-        let assets_for_me = config
-            .asset_addr
-            .send(GetPeerAssets(stake_peer_id.to_owned()))
-            .await
-            .unwrap();
+        let attacker_id = "attacker.batsense.net";
+        let attacker_default_stake = get_default_stake(&config, attacker_id).await;
 
-        let mut default_stake_id: Vec<String> = Vec::new();
-        assets_for_me.iter().for_each(|asset| {
-            default_stake_id.push(asset.get_hash().to_owned());
-        });
+        let victim_id = "victim.batsense.net";
+
+        let victim_default_stake = get_default_stake(&config, victim_id).await;
 
         let block_id = 9999;
-
-        let client_msg = GetStake {
+        let mut attacker_client_msg = GetStake {
             block_id,
-            peer_id: stake_peer_id.into(),
+            peer_id: attacker_id.into(),
+        };
+        let mut victim_client_msg = GetStake {
+            block_id,
+            peer_id: victim_id.into(),
         };
 
-        let stake: Stake = client.get_stake(client_msg, &config).await;
+        let stake: Stake = client.get_stake(victim_client_msg.clone(), &config).await;
+        assert_eq!(stake.block_id, block_id);
+        assert_eq!(stake.stake, victim_default_stake);
+        let stake: Stake = client.get_stake(attacker_client_msg.clone(), &config).await;
         assert_eq!(stake.block_id, block_id);
         assert_eq!(stake.stake, Stake::default().stake);
 
-        // testing attakcing peer when Mode::Attacker(true)
+        // testing stake after toggling peers
         client.set_attack(&config).await;
 
         let block_id = 3;
-        let client_msg = GetStake {
-            block_id,
-            peer_id: stake_peer_id.into(),
-        };
-        let stake: Stake = client.get_stake(client_msg, &config).await;
+        attacker_client_msg.block_id = block_id;
+        victim_client_msg.block_id = block_id;
+        let stake: Stake = client.get_stake(attacker_client_msg, &config).await;
         assert_eq!(stake.block_id, block_id);
-        assert_eq!(stake.stake, default_stake_id);
+        assert_eq!(stake.stake, attacker_default_stake);
+        let stake: Stake = client.get_stake(victim_client_msg, &config).await;
+        assert_eq!(stake.block_id, block_id);
+        assert_eq!(stake.stake, Stake::default().stake);
     }
 }

@@ -42,7 +42,7 @@ pub enum Mode {
     /// mounting attack, i.e, when
     /// maximum stake is required
     Attacker(bool),
-    /// set Attacker = true when
+    /// set Victim = true when
     /// under attack
     /// This simulates DoS by
     /// not making any changes

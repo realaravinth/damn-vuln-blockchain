@@ -55,17 +55,17 @@ mod tests {
 
         // difficult to tell which peer will have the latest chain
         // so fetch both
-        let attacker_chain = client.get_chain(&config, "attacker.batsense.net").await;
-        let victim_chain = client.get_chain(&config, "victim.batsense.net").await;
+        let mut attacker_chain = client.get_chain(&config, "attacker.batsense.net").await;
+        let mut victim_chain = client.get_chain(&config, "victim.batsense.net").await;
 
         if attacker_chain.len() > victim_chain.len() {
             assert_eq!(
-                attacker_chain.last().unwrap().get_asset_id().unwrap(),
+                attacker_chain.pop().unwrap().get_asset_id().unwrap(),
                 asset_id
             );
         } else {
             assert_eq!(
-                victim_chain.last().unwrap().get_asset_id().unwrap(),
+                victim_chain.pop().unwrap().get_asset_id().unwrap(),
                 asset_id
             );
         }

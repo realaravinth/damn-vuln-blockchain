@@ -73,3 +73,18 @@ pub async fn get_my_assets(config: &Config) -> Vec<Asset> {
         .await
         .unwrap()
 }
+
+pub async fn get_default_stake(config: &Config, peer_id: &str) -> Vec<String> {
+    let assets = config
+        .asset_addr
+        .send(GetPeerAssets(peer_id.into()))
+        .await
+        .unwrap();
+
+    let mut defaul_stake: Vec<String> = Vec::new();
+    assets.iter().for_each(|asset| {
+        defaul_stake.push(asset.get_hash().to_owned());
+    });
+
+    return defaul_stake;
+}
