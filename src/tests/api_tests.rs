@@ -22,7 +22,7 @@ mod tests {
     use damn_vuln_blockchain::discovery::GetPeer;
     use damn_vuln_blockchain::Client;
 
-    use crate::tests::helpers::*;
+    use damn_vuln_blockchain::helpers::*;
 
     // testing api client wrappers from
     // damn_vuln_blockchain::api::client::Client
@@ -31,7 +31,7 @@ mod tests {
     #[actix_rt::test]
     async fn dump_and_enroll_work() {
         let config = generate_test_config();
-        let mut client = Client::default();
+        let client = Client::default();
 
         client.peer_enroll(&config).await;
         client.peer_discovery(&config).await;
@@ -89,7 +89,9 @@ mod tests {
         use damn_vuln_blockchain::client::GetStake;
 
         let config = generate_test_config();
-        config.bootstrap().await;
+
+        let client = Client::default();
+        non_register_bootstrap(&config, &client).await;
 
         // testing victim client
         let stake_peer_id = "victim.batsense.net";
@@ -104,7 +106,6 @@ mod tests {
             default_stake_id.push(asset.get_hash().to_owned());
         });
 
-        let client = Client::default();
         let block_id = 9999;
 
         let client_msg = GetStake {
@@ -123,7 +124,9 @@ mod tests {
         use damn_vuln_blockchain::client::GetStake;
 
         let config = generate_test_config();
-        config.bootstrap().await;
+        let client = Client::default();
+
+        non_register_bootstrap(&config, &client).await;
 
         // testing attakcing peer when Mode::Attacker(false)
         let stake_peer_id = "attacker.batsense.net";
@@ -138,7 +141,6 @@ mod tests {
             default_stake_id.push(asset.get_hash().to_owned());
         });
 
-        let client = Client::default();
         let block_id = 9999;
 
         let client_msg = GetStake {

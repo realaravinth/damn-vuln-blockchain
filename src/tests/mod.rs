@@ -16,42 +16,6 @@
 */
 
 #[cfg(test)]
-pub mod routes_enroll;
-
-#[cfg(test)]
 pub mod api_tests;
-
 #[cfg(test)]
-pub mod helpers {
-    use actix::prelude::*;
-    use damn_vuln_blockchain::asset::AssetLedger;
-    use damn_vuln_blockchain::chain::Chain;
-    use damn_vuln_blockchain::config::{Config, Mode, ModeActor};
-    use damn_vuln_blockchain::discovery::Network;
-
-    #[cfg(test)]
-    pub fn generate_test_config() -> Config {
-        let peer_id = "test.bastsense.net".into();
-        let public_ip = "localhost:7003".into();
-
-        let mode_addr = ModeActor::new(Mode::Normal).start();
-        let chain_addr = Chain::new("Legit").start();
-        let tampered_chain_addr = None;
-        let network_addr = Network::default().start();
-
-        let init_network_size: usize = 3;
-        let auditor_node = "localhost:7000".into();
-
-        Config {
-            peer_id,
-            mode_addr,
-            asset_addr: AssetLedger::default().start(),
-            tampered_chain_addr,
-            chain_addr,
-            network_addr,
-            init_network_size,
-            auditor_node,
-            public_ip,
-        }
-    }
-}
+pub mod routes_enroll;

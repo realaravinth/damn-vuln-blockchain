@@ -41,8 +41,6 @@ pub struct Gossip {
 pub struct SellAsset {
     /// asset ID
     pub asset_id: String,
-    /// use stake for transaction?
-    pub use_stake: bool,
 }
 
 /// Get stake payload

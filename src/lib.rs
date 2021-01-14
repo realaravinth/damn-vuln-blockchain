@@ -67,9 +67,10 @@ pub mod client;
 pub mod config;
 pub mod discovery;
 pub mod error;
+#[path = "./tests/helpers.rs"]
+pub mod helpers;
 pub mod logs;
 pub mod payload;
-mod utils;
-
+pub mod utils;
 pub use client::Client;
 pub use config::Config;

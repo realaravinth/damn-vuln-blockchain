@@ -20,6 +20,7 @@ use actix_web::{
     web::{self, ServiceConfig},
     HttpResponse, Responder,
 };
+use log::debug;
 
 use damn_vuln_blockchain::config::{Config, GetMode, Mode, SetMode};
 use damn_vuln_blockchain::payload::{GetStake as PayloadGetStake, Peer, SellAsset};
@@ -112,10 +113,8 @@ async fn sell(
     payload: web::Json<SellAsset>,
     data: web::Data<Config>,
 ) -> impl Responder {
-    use damn_vuln_blockchain::asset::{ChooseValidator, GetAssetInfo, Stake};
-    use damn_vuln_blockchain::chain::GetLastBlock;
-    use damn_vuln_blockchain::client::GetStake as ClientGetStake;
-    use damn_vuln_blockchain::discovery::{DumpPeer, GetPeer};
+    use damn_vuln_blockchain::asset::GetAssetInfo;
+    use damn_vuln_blockchain::utils::consensus;
 
     if let Some(asset_info) = data
         .asset_addr
@@ -123,8 +122,10 @@ async fn sell(
         .await
         .unwrap()
     {
+        debug!("Owner: {:#?}", asset_info.get_owner());
         if let Some(owner) = asset_info.get_owner() {
-            if owner != &data.peer_id {
+            if owner == &data.peer_id {
+                debug!("Ownership verified");
                 // stake must be custom, the below
                 // valudation selection doesn't work
                 // I must get stake from all peers and the
@@ -153,21 +154,12 @@ async fn sell(
                 //                .unwrap();
                 //            //TODO:
                 //            // 1. send peer the transaction request
-                let mut stake: Vec<Stake> = Vec::new();
-                let peers = data.network_addr.send(DumpPeer).await.unwrap();
-                let current_block = data.chain_addr.send(GetLastBlock).await.unwrap();
-                let next_block_id = current_block.get_serial_no().unwrap() + 1;
-                peers.iter().for_each(|peer| {
-                    let a = async {
-                        let client_payload = ClientGetStake {
-                            block_id: next_block_id,
-                            peer_id: peer.id.clone(),
-                        };
-                        //client.get_stake(client_payload, &data).await;
-                    };
-                });
+
+                println!("{:?}", consensus(&data, &client).await);
             }
         }
+    } else {
+        debug!("Ownership not verified");
     };
 
     HttpResponse::Ok()
@@ -179,4 +171,5 @@ pub fn services(cfg: &mut ServiceConfig) {
     cfg.service(assets_dump);
     cfg.service(get_stake);
     cfg.service(set_attack);
+    cfg.service(sell);
 }

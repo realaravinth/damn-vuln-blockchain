@@ -25,7 +25,7 @@ mod tests {
     use damn_vuln_blockchain::payload::Peer;
 
     use crate::routes::services;
-    use crate::tests::helpers::generate_test_config;
+    use damn_vuln_blockchain::helpers::generate_test_config;
 
     #[actix_rt::test]
     async fn get_stake_route_works() {

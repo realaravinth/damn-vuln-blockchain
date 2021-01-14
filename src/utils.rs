@@ -15,7 +15,12 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use data_encoding::HEXUPPER;
+use log::debug;
 use sha2::{Digest, Sha256};
+
+use crate::asset::{Asset, AssetLedger, GetAssetInfo, Stake};
+use crate::payload::{GetStake, Peer, SellAsset};
+use crate::{Client, Config};
 
 /// helper function for generating sha256 hashes
 pub fn hasher(content: &str) -> String {
@@ -51,3 +56,86 @@ pub fn get_current_time() -> String {
 //pub fn timesamp_to_string(timestamp: Timestamp) -> String {
 //    unimplemented!()
 //}
+
+pub async fn consensus(config: &Config, client: &Client) -> Peer {
+    use crate::chain::GetLastBlock;
+    use crate::client::GetStake as ClientGetStake;
+    use crate::discovery::DumpPeer;
+    let mut stake: Vec<(String, Stake)> = Vec::new();
+    let peers = config.network_addr.send(DumpPeer).await.unwrap();
+    let current_block = config.chain_addr.send(GetLastBlock).await.unwrap();
+    let next_block_id = current_block.get_serial_no().unwrap() + 1;
+
+    for peer in peers.iter() {
+        let client_payload = ClientGetStake {
+            block_id: next_block_id,
+            peer_id: peer.id.clone(),
+        };
+        debug!("Requesting stake from peer {}", &peer.id);
+
+        stake.push((
+            peer.id.clone(),
+            client.get_stake(client_payload, &config).await,
+        ));
+    }
+
+    // now we have stake of all peers
+    // time to calculate validator
+    // asset ownership should be
+    // verified before calculation
+    from_stake_to_validator(&config, stake).await
+}
+
+pub async fn from_stake_to_validator(config: &Config, all_stakes: Vec<(String, Stake)>) -> Peer {
+    use crate::discovery::GetPeer;
+    let mut authenticated_stakes: Vec<Asset> = Vec::default();
+    for (peer_id, stakes) in all_stakes.iter() {
+        for stake in stakes.stake.iter() {
+            if let Some(asset) = config
+                .asset_addr
+                .send(GetAssetInfo(stake.clone()))
+                .await
+                .unwrap()
+            {
+                if let Some(owner) = asset.get_owner() {
+                    if owner == peer_id {
+                        authenticated_stakes.push(asset);
+                    }
+                }
+            }
+        }
+    }
+
+    debug!("Ownership verified");
+    let mut stake_ledger = AssetLedger::new("stake_ledger");
+    stake_ledger.assets = authenticated_stakes;
+    let validator_peer_id = stake_ledger.choose_validator().unwrap();
+    debug!("Validator: {}", &validator_peer_id);
+
+    config
+        .network_addr
+        .send(GetPeer(validator_peer_id))
+        .await
+        .unwrap()
+        .unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::config::{Mode, SetMode};
+    use crate::helpers::{generate_test_config, non_register_bootstrap};
+
+    #[actix_rt::test]
+    async fn consensus_works() {
+        let config = generate_test_config();
+        config.mode_addr.send(SetMode(Mode::Normal)).await.unwrap();
+        let client = Client::default();
+
+        non_register_bootstrap(&config, &client).await;
+
+        let validator = consensus(&config, &client).await;
+        assert_eq!(validator.id, "victim.batsense.net");
+    }
+}

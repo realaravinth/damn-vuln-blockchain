@@ -36,7 +36,10 @@ use derive_builder::Builder;
 use log::debug;
 use serde::{Deserialize, Serialize};
 
+use crate::discovery::GetPeer;
 use crate::payload::GetStake as PayloadGetStake;
+use crate::payload::Peer;
+use crate::Config;
 
 /// /// [Asset]s are objects that can be transacted on the blockchain
 #[derive(PartialEq, Deserialize, Serialize, Clone, Debug)]
