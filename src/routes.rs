@@ -77,6 +77,7 @@ async fn assets_dump(data: web::Data<Config>) -> impl Responder {
 #[post("/attack")]
 async fn set_attack(data: web::Data<Config>) -> impl Responder {
     let current_mode = data.mode_addr.send(GetMode).await.unwrap();
+    debug!("current mode: {:?}", &current_mode);
     let new_mode = match current_mode {
         Mode::Attacker(val) => Some(Mode::Attacker(!val)),
         Mode::Victim(val) => Some(Mode::Victim(!val)),
@@ -84,6 +85,7 @@ async fn set_attack(data: web::Data<Config>) -> impl Responder {
     };
 
     if let Some(mode) = new_mode {
+        debug!("changing mode to: {:?}", &mode);
         data.mode_addr.send(SetMode(mode)).await.unwrap();
     }
     HttpResponse::Ok()
@@ -97,7 +99,7 @@ async fn get_stake(payload: web::Json<PayloadGetStake>, data: web::Data<Config>)
     // attacking peer should always return stake = 0
     let current_mode = data.mode_addr.send(GetMode).await.unwrap();
 
-    if current_mode == Mode::Attacker(false) || current_mode == Mode::Attacker(true) {
+    if current_mode == Mode::Attacker(false) || current_mode == Mode::Victim(true) {
         let set_stake_msg = SetStakeBuilder::default()
             .block_id(msg.0)
             .peer_id(data.peer_id.clone())

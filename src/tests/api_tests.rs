@@ -153,7 +153,6 @@ mod tests {
         assert_eq!(stake.stake, Stake::default().stake);
 
         // testing attakcing peer when Mode::Attacker(true)
-
         client.set_attack(&config).await;
 
         let block_id = 3;

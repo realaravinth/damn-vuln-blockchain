@@ -36,10 +36,7 @@ use derive_builder::Builder;
 use log::debug;
 use serde::{Deserialize, Serialize};
 
-use crate::discovery::GetPeer;
 use crate::payload::GetStake as PayloadGetStake;
-use crate::payload::Peer;
-use crate::Config;
 
 /// /// [Asset]s are objects that can be transacted on the blockchain
 #[derive(PartialEq, Deserialize, Serialize, Clone, Debug)]
@@ -196,8 +193,6 @@ impl AssetLedger {
                         false
                     }
                 });
-
-                debug!("Peers currently assigned: {:#?}", &peer_check);
 
                 if peer_check.is_none() {
                     peers_currently_assigned.push(owner);
@@ -527,10 +522,10 @@ impl Handler<GetStake> for AssetLedger {
     type Result = MessageResult<GetStake>;
 
     fn handle(&mut self, msg: GetStake, _ctx: &mut Self::Context) -> Self::Result {
-        let stake =
-            self.stake
-                .iter()
-                .find(|stake| if stake.block_id == msg.0 { true } else { false });
+        let stake = self
+            .stake
+            .iter()
+            .find(|stake| if stake.block_id == msg.0 { true } else { false });
         if stake.is_some() {
             MessageResult(stake.unwrap().to_owned())
         } else {
