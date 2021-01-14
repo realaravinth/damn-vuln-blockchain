@@ -16,22 +16,17 @@
 */
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
 
     use damn_vuln_blockchain::helpers::*;
     use damn_vuln_blockchain::payload::TxBuilder;
     use damn_vuln_blockchain::Client;
+    use damn_vuln_blockchain::Config;
 
-    #[actix_rt::test]
-    async fn tx_works() {
+    pub async fn tx_works(config: &Config, client: &Client) {
         use damn_vuln_blockchain::asset::GetPeerAssets;
 
         use damn_vuln_blockchain::client::GetStake;
-
-        let config = generate_test_config();
-
-        let client = Client::default();
-        non_register_bootstrap(&config, &client).await;
 
         // getting assets belonging to the seller peer
         let seller_peer_id = "victim.batsense.net";

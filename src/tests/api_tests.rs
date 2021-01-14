@@ -16,11 +16,12 @@
 */
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
 
     use damn_vuln_blockchain::asset::DumpLedger;
     use damn_vuln_blockchain::utils::*;
     use damn_vuln_blockchain::Client;
+    use damn_vuln_blockchain::Config;
 
     use damn_vuln_blockchain::helpers::*;
 
@@ -76,15 +77,15 @@ mod tests {
         );
     }
 
-    #[actix_rt::test]
-    async fn get_stake_attacker_peer() {
+    // race condition, toggles attack mode. Can mess up stake and sync
+    pub async fn stake_toggle_test(config: &Config, client: &Client) {
         use damn_vuln_blockchain::asset::Stake;
         use damn_vuln_blockchain::client::GetStake;
 
-        let config = generate_test_config();
-        let client = Client::default();
+        // let config = generate_test_config();
+        // let client = Client::default();
 
-        non_register_bootstrap(&config, &client).await;
+        // non_register_bootstrap(&config, &client).await;
 
         // testing attakcing peer when Mode::Attacker(false)
         let attacker_id = "attacker.batsense.net";

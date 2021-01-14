@@ -16,10 +16,23 @@
 */
 
 #[cfg(test)]
-pub mod api_tests;
-#[cfg(test)]
-pub mod race_cond;
-#[cfg(test)]
-pub mod routes_enroll;
-#[cfg(test)]
-pub mod tx;
+mod tests {
+
+    use crate::tests::api_tests::tests::stake_toggle_test;
+    use crate::tests::tx::tests::tx_works;
+    use damn_vuln_blockchain::helpers::*;
+    use damn_vuln_blockchain::Client;
+    use damn_vuln_blockchain::Config;
+
+    #[actix_rt::test]
+    pub async fn race_cond_test() {
+        let config = generate_test_config();
+
+        let client = Client::default();
+        non_register_bootstrap(&config, &client).await;
+
+        tx_works(&config, &client).await;
+        // blocking on sync
+        // stake_toggle_test(&config, &client).await;
+    }
+}
