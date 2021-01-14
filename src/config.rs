@@ -52,6 +52,7 @@ impl Config {
         Config::cli()
     }
 
+    #[cfg(not(tarpaulin_include))]
     pub async fn bootstrap(&self) {
         if self.mode_addr.send(GetMode).await.unwrap() != Mode::Auditor {
             info!("Bootstrapping node");
@@ -65,6 +66,7 @@ impl Config {
         }
     }
 
+    #[cfg(not(tarpaulin_include))]
     fn cli() -> Self {
         use clap::{App, Arg};
         let matches = App::new("Damn Vulnerable Blockchain")
