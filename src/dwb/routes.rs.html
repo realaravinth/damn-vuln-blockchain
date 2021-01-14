@@ -180,6 +180,20 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -259,11 +273,17 @@
 <span class="comment">// attack</span>
 <span class="attribute">#[<span class="ident">post</span>(<span class="string">&quot;/attack&quot;</span>)]</span>
 <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">set_attack</span>(<span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
-    <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">mode_addr</span>.<span class="ident">send</span>(<span class="ident">GetMode</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Mode</span>::<span class="ident">Attacker</span>(<span class="bool-val">false</span>) {
-        <span class="ident">data</span>.<span class="ident">mode_addr</span>
-            .<span class="ident">send</span>(<span class="ident">SetMode</span>(<span class="ident">Mode</span>::<span class="ident">Attacker</span>(<span class="bool-val">true</span>)))
-            .<span class="ident">await</span>
-            .<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">current_mode</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">mode_addr</span>.<span class="ident">send</span>(<span class="ident">GetMode</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
+    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;current mode: {:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">current_mode</span>);
+    <span class="kw">let</span> <span class="ident">new_mode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">current_mode</span> {
+        <span class="ident">Mode</span>::<span class="ident">Attacker</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Mode</span>::<span class="ident">Attacker</span>(<span class="op">!</span><span class="ident">val</span>)),
+        <span class="ident">Mode</span>::<span class="ident">Victim</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Mode</span>::<span class="ident">Victim</span>(<span class="op">!</span><span class="ident">val</span>)),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+    };
+
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mode</span>) <span class="op">=</span> <span class="ident">new_mode</span> {
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;changing mode to: {:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">mode</span>);
+        <span class="ident">data</span>.<span class="ident">mode_addr</span>.<span class="ident">send</span>(<span class="ident">SetMode</span>(<span class="ident">mode</span>)).<span class="ident">await</span>.<span class="ident">unwrap</span>();
     }
     <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()
 }
@@ -274,7 +294,9 @@
     <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">asset</span>::{<span class="ident">GetStake</span> <span class="kw">as</span> <span class="ident">ActorGetStake</span>, <span class="ident">SetStakeBuilder</span>};
     <span class="kw">let</span> <span class="ident">msg</span>: <span class="ident">ActorGetStake</span> <span class="op">=</span> <span class="ident">payload</span>.<span class="ident">into_inner</span>().<span class="ident">into</span>();
     <span class="comment">// attacking peer should always return stake = 0</span>
-    <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">mode_addr</span>.<span class="ident">send</span>(<span class="ident">GetMode</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Mode</span>::<span class="ident">Attacker</span>(<span class="bool-val">false</span>) {
+    <span class="kw">let</span> <span class="ident">current_mode</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">mode_addr</span>.<span class="ident">send</span>(<span class="ident">GetMode</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
+
+    <span class="kw">if</span> <span class="ident">current_mode</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Mode</span>::<span class="ident">Attacker</span>(<span class="bool-val">false</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">current_mode</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Mode</span>::<span class="ident">Victim</span>(<span class="bool-val">true</span>) {
         <span class="kw">let</span> <span class="ident">set_stake_msg</span> <span class="op">=</span> <span class="ident">SetStakeBuilder</span>::<span class="ident">default</span>()
             .<span class="ident">block_id</span>(<span class="ident">msg</span>.<span class="number">0</span>)
             .<span class="ident">peer_id</span>(<span class="ident">data</span>.<span class="ident">peer_id</span>.<span class="ident">clone</span>())
@@ -285,7 +307,6 @@
     };
 
     <span class="kw">let</span> <span class="ident">stake</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">asset_addr</span>.<span class="ident">send</span>(<span class="ident">msg</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
-
     <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">json</span>(<span class="ident">stake</span>)
 }
 
@@ -310,39 +331,11 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">owner</span>) <span class="op">=</span> <span class="ident">asset_info</span>.<span class="ident">get_owner</span>() {
             <span class="kw">if</span> <span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">peer_id</span> {
                 <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Ownership verified&quot;</span>);
-                <span class="comment">// stake must be custom, the below</span>
-                <span class="comment">// valudation selection doesn&#39;t work</span>
-                <span class="comment">// I must get stake from all peers and the</span>
-                <span class="comment">// choose validator</span>
-                <span class="comment">// Steps:</span>
-                <span class="comment">// 1. Get stake from all(peer: if unspecified, return full stake)</span>
-                <span class="comment">// 2. Choose validator</span>
-                <span class="comment">// 3. Send transaction request</span>
-                <span class="comment">//</span>
-                <span class="comment">// maybe AssetLedger can have a second structure with stake</span>
-                <span class="comment">// for every block ID?</span>
-                <span class="comment">//            let validator = data</span>
-                <span class="comment">//                .asset_addr</span>
-                <span class="comment">//                .send(ChooseValidator)</span>
-                <span class="comment">//                .await</span>
-                <span class="comment">//                .unwrap()</span>
-                <span class="comment">//                // unwrap below should be taken care of</span>
-                <span class="comment">//                // None occurs when there are no peers in</span>
-                <span class="comment">//                // the network</span>
-                <span class="comment">//                .unwrap();</span>
-                <span class="comment">//            let validator_peer = data</span>
-                <span class="comment">//                .network_addr</span>
-                <span class="comment">//                .send(GetPeer(validator))</span>
-                <span class="comment">//                .await</span>
-                <span class="comment">//                .unwrap()</span>
-                <span class="comment">//                .unwrap();</span>
-                <span class="comment">//            //TODO:</span>
-                <span class="comment">//            // 1. send peer the transaction request</span>
 
                 <span class="kw">let</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">chain_addr</span>.<span class="ident">send</span>(<span class="ident">GetLastBlock</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="ident">next_block_id</span> <span class="op">=</span> <span class="ident">current_block</span>.<span class="ident">get_serial_no</span>().<span class="ident">unwrap</span>() <span class="op">+</span> <span class="number">1</span>;
 
-                <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">consensus</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="ident">next_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">client</span>).<span class="ident">await</span>);
+                <span class="kw">let</span> <span class="ident">validator</span> <span class="op">=</span> <span class="ident">consensus</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="ident">next_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">client</span>).<span class="ident">await</span>;
             }
         }
     } <span class="kw">else</span> {
@@ -359,6 +352,41 @@
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">get_stake</span>);
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">set_attack</span>);
     <span class="ident">cfg</span>.<span class="ident">service</span>(<span class="ident">sell</span>);
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">actix_web</span>::{<span class="ident">dev</span>::<span class="ident">ServiceResponse</span>, <span class="ident">http</span>::<span class="ident">header</span>, <span class="ident">test</span>, <span class="ident">App</span>};
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">make_post_request</span>(
+        <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>,
+        <span class="ident">payload</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+        <span class="ident">url</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ServiceResponse</span> {
+        <span class="kw">let</span> <span class="ident">req</span>;
+        <span class="kw">if</span> <span class="ident">payload</span>.<span class="ident">is_some</span>() {
+            <span class="ident">req</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">TestRequest</span>::<span class="ident">post</span>()
+                .<span class="ident">uri</span>(<span class="ident">url</span>)
+                .<span class="ident">header</span>(<span class="ident">header</span>::<span class="ident">CONTENT_TYPE</span>, <span class="string">&quot;applicatin/json&quot;</span>)
+                .<span class="ident">set_payload</span>(<span class="ident">payload</span>.<span class="ident">unwrap</span>());
+        } <span class="kw">else</span> {
+            <span class="ident">req</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">TestRequest</span>::<span class="ident">post</span>()
+                .<span class="ident">uri</span>(<span class="ident">url</span>)
+                .<span class="ident">header</span>(<span class="ident">header</span>::<span class="ident">CONTENT_TYPE</span>, <span class="string">&quot;applicatin/json&quot;</span>)
+        }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">init_service</span>(<span class="ident">App</span>::<span class="ident">new</span>().<span class="ident">configure</span>(<span class="ident">services</span>).<span class="ident">data</span>(<span class="ident">config</span>.<span class="ident">clone</span>())).<span class="ident">await</span>;
+        <span class="ident">test</span>::<span class="ident">call_service</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">app</span>, <span class="ident">req</span>.<span class="ident">to_request</span>()).<span class="ident">await</span>
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">make_get_request</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>, <span class="ident">url</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ServiceResponse</span> {
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">TestRequest</span>::<span class="ident">get</span>().<span class="ident">uri</span>(<span class="ident">url</span>).<span class="ident">to_request</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">test</span>::<span class="ident">init_service</span>(<span class="ident">App</span>::<span class="ident">new</span>().<span class="ident">configure</span>(<span class="ident">services</span>).<span class="ident">data</span>(<span class="ident">config</span>.<span class="ident">clone</span>())).<span class="ident">await</span>;
+
+        <span class="ident">test</span>::<span class="ident">call_service</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">app</span>, <span class="ident">req</span>).<span class="ident">await</span>
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "dwb";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

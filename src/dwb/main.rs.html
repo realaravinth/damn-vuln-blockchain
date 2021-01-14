@@ -112,6 +112,11 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -180,6 +185,8 @@
 <span class="doccomment">//!  launch   launches network</span>
 <span class="doccomment">//!  kill     kills network</span>
 <span class="doccomment">//!```</span>
+<span class="kw">use</span> <span class="ident">actix_web</span>::{<span class="ident">error</span>::<span class="ident">InternalError</span>, <span class="ident">http</span>::<span class="ident">StatusCode</span>, <span class="ident">web</span>::<span class="ident">JsonConfig</span>};
+
 <span class="kw">mod</span> <span class="ident">routes</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -202,12 +209,16 @@
     <span class="kw">let</span> <span class="ident">ip_addr</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">public_ip</span>.<span class="ident">clone</span>();
 
     <span class="ident">HttpServer</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">log</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+            <span class="string">&quot;[{}]{}&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">peer_id</span>, <span class="string">&quot;%a %r %s %b %{Referer}i %{User-Agent}i %T&quot;</span>
+        );
         <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">configure</span>(<span class="ident">routes</span>::<span class="ident">services</span>)
             .<span class="ident">data</span>(<span class="ident">config</span>.<span class="ident">clone</span>())
             .<span class="ident">data</span>(<span class="ident">Client</span>::<span class="ident">default</span>())
             .<span class="ident">app_data</span>(<span class="ident">get_json_err</span>())
-            .<span class="ident">wrap</span>(<span class="ident">Logger</span>::<span class="ident">default</span>())
+            .<span class="ident">wrap</span>(<span class="ident">Logger</span>::<span class="ident">new</span>(<span class="ident">log</span>))
             .<span class="ident">wrap</span>(<span class="ident">Compress</span>::<span class="ident">default</span>())
             .<span class="ident">wrap</span>(<span class="ident">NormalizePath</span>::<span class="ident">new</span>(<span class="ident">normalize</span>::<span class="ident">TrailingSlash</span>::<span class="ident">Trim</span>))
     })
@@ -216,7 +227,6 @@
     .<span class="ident">await</span>
 }
 
-<span class="kw">use</span> <span class="ident">actix_web</span>::{<span class="ident">error</span>::<span class="ident">InternalError</span>, <span class="ident">http</span>::<span class="ident">StatusCode</span>, <span class="ident">web</span>::<span class="ident">JsonConfig</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
 <span class="kw">fn</span> <span class="ident">get_json_err</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsonConfig</span> {
     <span class="ident">JsonConfig</span>::<span class="ident">default</span>().<span class="ident">error_handler</span>(<span class="op">|</span><span class="ident">err</span>, <span class="kw">_</span><span class="op">|</span> {

@@ -139,6 +139,8 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -199,6 +201,7 @@
 <span class="comment">//    unimplemented!()</span>
 <span class="comment">//}</span>
 
+<span class="doccomment">/// get stake from all peers in network and get the validator peer</span>
 <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">consensus</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>, <span class="ident">block_id</span>: <span class="ident">usize</span>, <span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">Client</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Peer</span> {
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">client</span>::<span class="ident">GetStake</span> <span class="kw">as</span> <span class="ident">ClientGetStake</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">discovery</span>::<span class="ident">DumpPeer</span>;
@@ -225,7 +228,8 @@
     <span class="ident">from_stake_to_validator</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="ident">stake</span>).<span class="ident">await</span>
 }
 
-<span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">from_stake_to_validator</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>, <span class="ident">all_stakes</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">Stake</span>)<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Peer</span> {
+<span class="doccomment">/// get validator peer from stakes of all peers</span>
+<span class="ident">async</span> <span class="kw">fn</span> <span class="ident">from_stake_to_validator</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>, <span class="ident">all_stakes</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">Stake</span>)<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Peer</span> {
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">discovery</span>::<span class="ident">GetPeer</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">authenticated_stakes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Asset</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">default</span>();
     <span class="kw">for</span> (<span class="ident">peer_id</span>, <span class="ident">stakes</span>) <span class="kw">in</span> <span class="ident">all_stakes</span>.<span class="ident">iter</span>() {

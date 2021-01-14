@@ -71,13 +71,13 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
 */</span>
+<span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">asset</span>::<span class="ident">AssetLedger</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">chain</span>::<span class="ident">Chain</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">config</span>::{<span class="ident">Config</span>, <span class="ident">Mode</span>, <span class="ident">ModeActor</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">discovery</span>::<span class="ident">Network</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Client</span>;
-<span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_test_config</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Config</span> {
     <span class="kw">let</span> <span class="ident">peer_id</span> <span class="op">=</span> <span class="string">&quot;test.bastsense.net&quot;</span>.<span class="ident">into</span>();
