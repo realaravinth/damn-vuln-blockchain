@@ -119,22 +119,57 @@ async fn from_stake_to_validator(config: &Config, all_stakes: Vec<(String, Stake
         .unwrap()
 }
 
+pub async fn check_ownership(config: &Config, owner: &str, asset_id: &str) -> bool {
+    let asset_info = config
+        .asset_addr
+        .send(GetAssetInfo(asset_id.into()))
+        .await
+        .unwrap()
+        .unwrap();
+    debug!("Owner: {:?}", asset_info.get_owner());
+    if let Some(asset_owner) = asset_info.get_owner() {
+        if asset_owner == owner {
+            debug!("Ownership verified");
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
+pub async fn get_next_block_id(config: &Config) -> usize {
+    use crate::chain::GetLastBlock;
+    let current_block = config.chain_addr.send(GetLastBlock).await.unwrap();
+
+    if current_block.get_serial_no().unwrap() == 0 {
+        config.init_network_size + 1
+    } else {
+        current_block.get_serial_no().unwrap() + 1
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    use crate::config::{Mode, SetMode};
-    use crate::helpers::{generate_test_config, non_register_bootstrap};
+    use crate::config::Mode;
+    use crate::helpers::*;
 
     #[actix_rt::test]
     async fn consensus_works() {
-        let config = generate_test_config();
-        config.mode_addr.send(SetMode(Mode::Normal)).await.unwrap();
+        let config = init_network(Mode::Normal).await;
         let client = Client::default();
-
         non_register_bootstrap(&config, &client).await;
 
         let validator = consensus(&config, 1, &client).await;
         assert_eq!(validator.id, "victim.batsense.net");
+    }
+
+    #[actix_rt::test]
+    async fn get_next_block_id_works() {
+        let config = init_network(Mode::Normal).await;
+        assert_eq!(get_next_block_id(&config).await, 4)
     }
 }

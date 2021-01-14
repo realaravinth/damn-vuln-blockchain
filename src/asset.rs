@@ -537,7 +537,6 @@ impl Handler<GetStake> for AssetLedger {
                 .unwrap();
 
             self.stake.push(stake.clone());
-            println!("{:#?}", self.default_stake());
             MessageResult(stake)
         }
     }

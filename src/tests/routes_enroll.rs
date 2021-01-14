@@ -21,40 +21,16 @@ mod tests {
     use actix_web::test;
 
     use damn_vuln_blockchain::asset::Asset;
-    use damn_vuln_blockchain::config::{GetMode, Mode, SetMode};
+    use damn_vuln_blockchain::config::{GetMode, Mode};
     use damn_vuln_blockchain::payload::Peer;
     use damn_vuln_blockchain::Config;
 
     use crate::routes::tests::{make_get_request, make_post_request};
-    use damn_vuln_blockchain::helpers::generate_test_config;
-
-    async fn init_network(mode: Mode) -> Config {
-        use damn_vuln_blockchain::asset::InitNetworkBuilder;
-        let config = generate_test_config();
-        config.mode_addr.send(SetMode(mode)).await.unwrap();
-
-        let msg = InitNetworkBuilder::default()
-            .network_size(config.init_network_size)
-            .peer_id(config.peer_id.clone())
-            .build()
-            .unwrap();
-
-        config.asset_addr.send(msg).await.unwrap();
-        config
-    }
-
-    async fn get_assets_for_me(config: &Config) -> Vec<Asset> {
-        use damn_vuln_blockchain::asset::GetPeerAssets;
-        config
-            .asset_addr
-            .send(GetPeerAssets(config.peer_id.clone()))
-            .await
-            .unwrap()
-    }
+    use damn_vuln_blockchain::helpers::*;
 
     pub async fn prepare_default_stake(config: &Config) -> Vec<String> {
         let mut default_stake_id: Vec<String> = Vec::new();
-        let assets_for_me = get_assets_for_me(&config).await;
+        let assets_for_me = get_my_assets(&config).await;
         assets_for_me.iter().for_each(|asset| {
             default_stake_id.push(asset.get_hash().to_owned());
         });

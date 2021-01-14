@@ -16,9 +16,9 @@
 */
 use actix::prelude::*;
 
-use crate::asset::AssetLedger;
+use crate::asset::{Asset, AssetLedger, GetPeerAssets, InitNetworkBuilder};
 use crate::chain::Chain;
-use crate::config::{Config, Mode, ModeActor};
+use crate::config::{Config, Mode, ModeActor, SetMode};
 use crate::discovery::Network;
 use crate::Client;
 
@@ -26,7 +26,7 @@ pub fn generate_test_config() -> Config {
     let peer_id = "test.bastsense.net".into();
     let public_ip = "localhost:7003".into();
 
-    let mode_addr = ModeActor::new(Mode::Normal).start();
+    let mode_addr = ModeActor::new(Mode::Auditor).start();
     let chain_addr = Chain::new("Legit").start();
     let tampered_chain_addr = None;
     let network_addr = Network::default().start();
@@ -50,4 +50,26 @@ pub fn generate_test_config() -> Config {
 pub async fn non_register_bootstrap(config: &Config, client: &Client) {
     client.peer_discovery(&config).await;
     client.get_all_assets(&config).await;
+}
+
+pub async fn init_network(mode: Mode) -> Config {
+    let config = generate_test_config();
+    config.mode_addr.send(SetMode(mode)).await.unwrap();
+
+    let msg = InitNetworkBuilder::default()
+        .network_size(config.init_network_size)
+        .peer_id(config.peer_id.clone())
+        .build()
+        .unwrap();
+
+    config.asset_addr.send(msg).await.unwrap();
+    config
+}
+
+pub async fn get_my_assets(config: &Config) -> Vec<Asset> {
+    config
+        .asset_addr
+        .send(GetPeerAssets(config.peer_id.clone()))
+        .await
+        .unwrap()
 }

@@ -120,27 +120,11 @@ async fn sell(
     payload: web::Json<SellAsset>,
     data: web::Data<Config>,
 ) -> impl Responder {
-    use damn_vuln_blockchain::asset::GetAssetInfo;
-    use damn_vuln_blockchain::chain::GetLastBlock;
-    use damn_vuln_blockchain::utils::consensus;
+    use damn_vuln_blockchain::utils::{check_ownership, consensus, get_next_block_id};
 
-    if let Some(asset_info) = data
-        .asset_addr
-        .send(GetAssetInfo(payload.asset_id.clone()))
-        .await
-        .unwrap()
-    {
-        debug!("Owner: {:#?}", asset_info.get_owner());
-        if let Some(owner) = asset_info.get_owner() {
-            if owner == &data.peer_id {
-                debug!("Ownership verified");
-
-                let current_block = data.chain_addr.send(GetLastBlock).await.unwrap();
-                let next_block_id = current_block.get_serial_no().unwrap() + 1;
-
-                let validator = consensus(&data, next_block_id, &client).await;
-            }
-        }
+    if check_ownership(&data, &data.peer_id, &payload.asset_id).await {
+        let next_block_id = get_next_block_id(&data).await;
+        let validator = consensus(&data, next_block_id, &client).await;
     } else {
         debug!("Ownership not verified");
     };
