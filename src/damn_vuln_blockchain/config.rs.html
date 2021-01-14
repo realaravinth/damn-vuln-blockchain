@@ -228,6 +228,8 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -283,6 +285,7 @@
         <span class="ident">Config</span>::<span class="ident">cli</span>()
     }
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
     <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">bootstrap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mode_addr</span>.<span class="ident">send</span>(<span class="ident">GetMode</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">Mode</span>::<span class="ident">Auditor</span> {
             <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Bootstrapping node&quot;</span>);
@@ -296,6 +299,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
     <span class="kw">fn</span> <span class="ident">cli</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">App</span>, <span class="ident">Arg</span>};
         <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>(<span class="string">&quot;Damn Vulnerable Blockchain&quot;</span>)
