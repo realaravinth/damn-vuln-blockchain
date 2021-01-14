@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["generate_test_config",""],["non_register_bootstrap",""]]});
+initSidebarItems({"fn":[["generate_test_config",""],["get_my_assets",""],["init_network",""],["non_register_bootstrap",""]]});
