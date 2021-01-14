@@ -176,6 +176,10 @@
 <span id="173">173</span>
 <span id="174">174</span>
 <span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 * Copyright (C) 2020  Aravinth Manivannan &lt;realaravinth@batsense.net&gt;
@@ -293,6 +297,7 @@
     <span class="ident">data</span>: <span class="ident">web</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Responder</span> {
     <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">asset</span>::<span class="ident">GetAssetInfo</span>;
+    <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">chain</span>::<span class="ident">GetLastBlock</span>;
     <span class="kw">use</span> <span class="ident">damn_vuln_blockchain</span>::<span class="ident">utils</span>::<span class="ident">consensus</span>;
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">asset_info</span>) <span class="op">=</span> <span class="ident">data</span>
@@ -334,7 +339,10 @@
                 <span class="comment">//            //TODO:</span>
                 <span class="comment">//            // 1. send peer the transaction request</span>
 
-                <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">consensus</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="kw-2">&amp;</span><span class="ident">client</span>).<span class="ident">await</span>);
+                <span class="kw">let</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">chain_addr</span>.<span class="ident">send</span>(<span class="ident">GetLastBlock</span>).<span class="ident">await</span>.<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="ident">next_block_id</span> <span class="op">=</span> <span class="ident">current_block</span>.<span class="ident">get_serial_no</span>().<span class="ident">unwrap</span>() <span class="op">+</span> <span class="number">1</span>;
+
+                <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">consensus</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="ident">next_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">client</span>).<span class="ident">await</span>);
             }
         }
     } <span class="kw">else</span> {
