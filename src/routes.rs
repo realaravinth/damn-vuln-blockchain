@@ -114,6 +114,7 @@ async fn sell(
     data: web::Data<Config>,
 ) -> impl Responder {
     use damn_vuln_blockchain::asset::GetAssetInfo;
+    use damn_vuln_blockchain::chain::GetLastBlock;
     use damn_vuln_blockchain::utils::consensus;
 
     if let Some(asset_info) = data
@@ -155,7 +156,10 @@ async fn sell(
                 //            //TODO:
                 //            // 1. send peer the transaction request
 
-                println!("{:?}", consensus(&data, &client).await);
+                let current_block = data.chain_addr.send(GetLastBlock).await.unwrap();
+                let next_block_id = current_block.get_serial_no().unwrap() + 1;
+
+                println!("{:?}", consensus(&data, next_block_id, &client).await);
             }
         }
     } else {

@@ -57,18 +57,15 @@ pub fn get_current_time() -> String {
 //    unimplemented!()
 //}
 
-pub async fn consensus(config: &Config, client: &Client) -> Peer {
-    use crate::chain::GetLastBlock;
+pub async fn consensus(config: &Config, block_id: usize, client: &Client) -> Peer {
     use crate::client::GetStake as ClientGetStake;
     use crate::discovery::DumpPeer;
     let mut stake: Vec<(String, Stake)> = Vec::new();
     let peers = config.network_addr.send(DumpPeer).await.unwrap();
-    let current_block = config.chain_addr.send(GetLastBlock).await.unwrap();
-    let next_block_id = current_block.get_serial_no().unwrap() + 1;
 
     for peer in peers.iter() {
         let client_payload = ClientGetStake {
-            block_id: next_block_id,
+            block_id,
             peer_id: peer.id.clone(),
         };
         debug!("Requesting stake from peer {}", &peer.id);
@@ -135,7 +132,7 @@ mod tests {
 
         non_register_bootstrap(&config, &client).await;
 
-        let validator = consensus(&config, &client).await;
+        let validator = consensus(&config, 1, &client).await;
         assert_eq!(validator.id, "victim.batsense.net");
     }
 }
