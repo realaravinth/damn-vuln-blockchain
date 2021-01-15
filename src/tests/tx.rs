@@ -25,6 +25,7 @@ pub mod tests {
 
     pub async fn tx_works(config: &Config, client: &Client) {
         use damn_vuln_blockchain::asset::GetPeerAssets;
+        use damn_vuln_blockchain::utils::*;
 
         use damn_vuln_blockchain::client::GetStake;
 
@@ -50,8 +51,10 @@ pub mod tests {
 
         // difficult to tell which peer will have the latest chain
         // so fetch both
-        let mut attacker_chain = client.get_chain(&config, "attacker.batsense.net").await;
-        let mut victim_chain = client.get_chain(&config, "victim.batsense.net").await;
+        let attacker = get_peer(&config, "attacker.batsense.net").await;
+        let victim = get_peer(&config, "victim.batsense.net").await;
+        let mut attacker_chain = client.get_chain(&config, &attacker.ip).await;
+        let mut victim_chain = client.get_chain(&config, &victim.ip).await;
 
         if attacker_chain.len() > victim_chain.len() {
             assert_eq!(

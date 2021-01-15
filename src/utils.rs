@@ -220,6 +220,23 @@ pub async fn add_block_runner(config: &Config, client: &Client, block: &Block) {
         .unwrap();
 }
 
+/// broadcast block to all peers
+pub async fn broadcast_block(config: &Config, client: &Client, block: &Block) {
+    use crate::discovery::DumpPeer;
+    let peers = config.network_addr.send(DumpPeer).await.unwrap();
+    for peer in peers.iter() {
+        if peer.id != config.peer_id {
+            config.debug(&format!(
+                "Broadcasting block {} to peer {}",
+                &block.get_hash(),
+                &peer.id
+            ));
+
+            client.send_block_to_peer(&config, &peer, &block).await;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

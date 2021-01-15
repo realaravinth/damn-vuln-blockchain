@@ -37,6 +37,7 @@ const SELL_ASSET: &str = "/assets/sell";
 const GET_STAKE: &str = "/stake";
 const SET_ATTACK: &str = "/attack";
 const GET_CHAIN: &str = "/chain/all";
+const ADD_BLOCK: &str = "/chain/add";
 const SEND_VALIDATOR_TX: &str = "/block/validate";
 
 /// Client wrapper for p2p communication
@@ -180,9 +181,8 @@ impl Client {
     }
 
     /// Get chain dump
-    pub async fn get_chain(&self, config: &Config, peer_id: &str) -> Vec<Block> {
-        let peer = get_peer(&config, peer_id).await;
-        let addr = Client::make_uri(&peer.ip, GET_CHAIN);
+    pub async fn get_chain(&self, config: &Config, peer_ip: &str) -> Vec<Block> {
+        let addr = Client::make_uri(&peer_ip, GET_CHAIN);
 
         loop {
             if let Ok(mut val) = self.client.get(&addr).send().await {
@@ -226,6 +226,23 @@ impl Client {
                     config.asset_addr.send(ReplaceLedger(val)).await;
                     break;
                 }
+            }
+        }
+    }
+
+    /// send block to peer
+    pub async fn send_block_to_peer(&self, config: &Config, peer: &Peer, payload: &Block) {
+        let peer_addr = get_peer(&config, &peer.id).await;
+        let addr = Client::make_uri(&peer_addr.ip, ADD_BLOCK);
+        loop {
+            if let Ok(_) = self
+                .client
+                .post(&addr)
+                .header("content-type", "application/json")
+                .send_json(&payload)
+                .await
+            {
+                break;
             }
         }
     }

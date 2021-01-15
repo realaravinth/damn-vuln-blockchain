@@ -72,6 +72,7 @@ impl Config {
 
     #[cfg(not(tarpaulin_include))]
     pub async fn bootstrap(&self) {
+        use crate::chain::ReplaceChain;
         if self.mode_addr.send(GetMode).await.unwrap() != Mode::Auditor {
             self.info("Bootstrapping node");
             let client = Client::default();
@@ -81,6 +82,8 @@ impl Config {
             client.peer_discovery(&self).await;
             self.info("Bootstrapping assets");
             client.get_all_assets(&self).await;
+            let chain = client.get_chain(&self, &self.auditor_node).await;
+            self.chain_addr.send(ReplaceChain(chain)).await;
         }
     }
 
@@ -209,25 +212,27 @@ impl Config {
         use crate::discovery::{DumpPeer, ReplacePeerLedger};
         use actix::clock::delay_for;
         use std::time::Duration;
-        let duration = Duration::from_millis(500);
+        let duration = Duration::from_millis(5000);
 
         loop {
             let client = Client::default();
             let peers = self.network_addr.send(DumpPeer).await.unwrap();
+
             for peer in peers.iter() {
                 delay_for(duration).await;
-                let chain = client.get_chain(&self, &peer.id).await;
-                let current_chain = self.chain_addr.send(ChainDump).await.unwrap();
-                if current_chain.len() < chain.len() {
-                    self.chain_addr.send(ReplaceChain(chain)).await;
-                    client.get_peer_assets(&self, peer).await;
-                }
+                //    let chain = client.get_chain(&self, &peer.id).await;
+                //    let current_chain = self.chain_addr.send(ChainDump).await.unwrap();
+                //    if current_chain.len() < chain.len() {
+                //        self.chain_addr.send(ReplaceChain(chain)).await;
+                //        client.get_peer_assets(&self, peer).await;
+                //    }
 
                 let peers_upadate = client.peer_dump(&self).await;
                 if peers.len() < peers_upadate.len() {
                     self.network_addr
                         .send(ReplacePeerLedger(peers_upadate))
                         .await;
+                    client.get_peer_assets(&self, peer).await;
                 }
             }
         }
