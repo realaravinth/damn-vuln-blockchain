@@ -28,7 +28,8 @@ pub fn generate_test_config() -> Config {
 
     let mode_addr = ModeActor::new(Mode::Auditor).start();
     let chain_addr = Chain::new("Legit").start();
-    let tampered_chain_addr = None;
+    let tampered_asset_addr = AssetLedger::new("Tampered").start();
+    let tampered_chain_addr = Chain::new("Tampered").start();
     let network_addr = Network::default().start();
 
     let init_network_size: usize = 3;
@@ -39,6 +40,7 @@ pub fn generate_test_config() -> Config {
         mode_addr,
         asset_addr: AssetLedger::default().start(),
         tampered_chain_addr,
+        tampered_asset_addr,
         chain_addr,
         network_addr,
         init_network_size,

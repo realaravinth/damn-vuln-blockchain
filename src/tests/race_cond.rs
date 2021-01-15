@@ -62,7 +62,7 @@ mod tests {
         }
     }
 
-    #[actix_rt::test]
+    //    #[actix_rt::test]
     pub async fn race_cond_test() {
         use actix::clock::delay_for;
         use std::time::Duration;

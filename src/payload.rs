@@ -19,6 +19,9 @@ use derive_builder::Builder;
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
+use crate::asset::Asset;
+use crate::block::Block;
+
 /// Represents a peer
 #[derive(Deserialize, Display, Serialize, Clone, Debug, Default)]
 #[display(fmt = "{}", id)]
@@ -59,4 +62,14 @@ pub struct ValidateTx {
     pub tx: Tx,
     /// seller peer ID
     pub seller_peer_id: String,
+}
+
+/// Transaction payload
+#[derive(Deserialize, Builder, Serialize)]
+pub struct Status {
+    pub asset: Vec<Asset>,
+    pub tampered_assets: Option<Vec<Asset>>,
+    pub chain: Vec<Block>,
+    pub tampered_chain: Option<Vec<Block>>,
+    pub peer_id: String,
 }

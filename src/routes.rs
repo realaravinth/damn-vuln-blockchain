@@ -24,7 +24,7 @@ use actix_web::{
 use damn_vuln_blockchain::block::Block;
 use damn_vuln_blockchain::config::{Config, GetMode, Mode, SetMode};
 use damn_vuln_blockchain::payload::{
-    GetStake as PayloadGetStake, Peer, Tx, ValidateTx, ValidateTxBuilder,
+    GetStake as PayloadGetStake, Peer, StatusBuilder, Tx, ValidateTx, ValidateTxBuilder,
 };
 use damn_vuln_blockchain::Client;
 use log::debug;
@@ -85,18 +85,60 @@ async fn chain_dump(data: web::Data<Config>) -> impl Responder {
 }
 
 // attack
+#[post("/fork")]
+async fn fork(data: web::Data<Config>) -> impl Responder {
+    use damn_vuln_blockchain::asset::{DumpLedger as DumpAsset, ReplaceLedger as ReplaceAsset};
+    use damn_vuln_blockchain::chain::{DumpLedger, ReplaceChain};
+
+    let current_mode = data.mode_addr.send(GetMode).await.unwrap();
+    data.debug(&format!("current mode: {:?}", &current_mode));
+    if current_mode == Mode::Attacker(true) || current_mode == Mode::Attacker(false) {
+        data.info("Forking chain");
+        let chain = data.chain_addr.send(DumpLedger).await.unwrap();
+        data.tampered_chain_addr
+            .send(ReplaceChain(chain))
+            .await
+            .unwrap()
+            .unwrap();
+        let assets = data.asset_addr.send(DumpAsset).await.unwrap();
+        data.tampered_asset_addr
+            .send(ReplaceAsset(assets))
+            .await
+            .unwrap();
+    }
+
+    HttpResponse::Ok()
+}
+
+// attack
 #[post("/attack")]
 async fn set_attack(data: web::Data<Config>) -> impl Responder {
+    use damn_vuln_blockchain::asset::{DumpLedger as DumpAsset, ReplaceLedger as ReplaceAsset};
+    use damn_vuln_blockchain::chain::{DumpLedger, ReplaceChain};
+
     let current_mode = data.mode_addr.send(GetMode).await.unwrap();
-    debug!("{}", &format!("current mode: {:?}", &current_mode));
+    data.debug(&format!("current mode: {:?}", &current_mode));
     let new_mode = match current_mode {
-        Mode::Attacker(val) => Some(Mode::Attacker(!val)),
+        Mode::Attacker(val) => {
+            //            let chain = data.chain_addr.send(DumpLedger).await.unwrap();
+            //            data.tampered_chain_addr
+            //                .send(ReplaceChain(chain))
+            //                .await
+            //                .unwrap()
+            //                .unwrap();
+            //            let assets = data.asset_addr.send(DumpAsset).await.unwrap();
+            //            data.tampered_asset_addr
+            //                .send(ReplaceAsset(assets))
+            //                .await
+            //                .unwrap();
+            Some(Mode::Attacker(!val))
+        }
         Mode::Victim(val) => Some(Mode::Victim(!val)),
         _ => None,
     };
 
     if let Some(mode) = new_mode {
-        debug!("{}", &format!("changing mode to: {:?}", &mode));
+        data.debug(&format!("changing mode to: {:?}", &mode));
         data.mode_addr.send(SetMode(mode)).await.unwrap();
     }
     HttpResponse::Ok()
@@ -141,6 +183,14 @@ async fn sell(
 ) -> impl Responder {
     use damn_vuln_blockchain::utils::{check_ownership, consensus, get_next_block_id};
 
+    //  let mut config = data.into_inner();
+    //  if config.mode_addr.send(GetMode).await.unwrap() == Mode::Attacker(true)
+    //      && payload.buyer_peer_id == "victim.batsense.net"
+    //  {
+    //      config.info("Replacing legit chains with forked chains");
+    //      use std::sync::Arc;
+    //      config = Arc::new(config.fork_chain());
+    //  }
     if check_ownership(&data, &data.peer_id, &payload.asset_id).await {
         let next_block_id = get_next_block_id(&data).await;
         let validator = consensus(&data, next_block_id, &client).await;
@@ -153,7 +203,7 @@ async fn sell(
             .send_tx_to_validator(&validator, &validator_payload)
             .await;
     } else {
-        debug!("Ownership not verified");
+        data.debug("Ownership not verified");
     };
 
     HttpResponse::Ok()
@@ -167,7 +217,6 @@ async fn add_block(
     data: web::Data<Config>,
 ) -> impl Responder {
     use damn_vuln_blockchain::utils::*;
-
     if check_ownership(
         &data,
         payload.get_tx().unwrap(),
@@ -175,9 +224,17 @@ async fn add_block(
     )
     .await
     {
-        add_block_runner(&data, &client, &payload).await;
+        if data.mode_addr.send(GetMode).await.unwrap() == Mode::Victim(true) {
+            if payload.get_tx().unwrap() == "attacker.batsense.net"
+                && payload.get_rx().unwrap() == "victim.batsense.net"
+            {
+                add_block_runner(&data, &client, &payload).await;
+            }
+        } else {
+            add_block_runner(&data, &client, &payload).await;
+        }
     } else {
-        debug!("Ownership not verified");
+        data.debug("Ownership not verified");
     };
 
     HttpResponse::Ok()
@@ -199,13 +256,18 @@ async fn validate(
         let next_block_id = get_next_block_id(&data).await;
         let validator = consensus(&data, next_block_id, &client).await;
         if data.peer_id == validator.id {
-            debug!("Consensus verified, proceeding with block creation");
+            data.debug("Consensus verified, proceeding with block creation");
             // 1. Create block
             // 2. Change asset ownership
             // 3. mutate validation assets and sold last transaction
             // 4. add block to chain
             // 5. broadcast
-            let last_block = data.chain_addr.send(GetLastBlock).await.unwrap();
+            let last_block = data
+                .get_chain_addr()
+                .await
+                .send(GetLastBlock)
+                .await
+                .unwrap();
             let new_block = BlockBuilder::default()
                 .set_tx(&payload.seller_peer_id)
                 .set_rx(&payload.tx.buyer_peer_id)
@@ -216,13 +278,40 @@ async fn validate(
             add_block_runner(&data, &client, &new_block).await;
             broadcast_block(&data, &client, &new_block).await;
         } else {
-            debug!("Consensus failure");
+            data.debug("Consensus failure");
         }
     } else {
-        debug!("Ownership not verified");
+        data.debug("Ownership not verified");
     };
 
     HttpResponse::Ok()
+}
+// state
+#[get("/state")]
+async fn state(data: web::Data<Config>) -> impl Responder {
+    use damn_vuln_blockchain::asset::DumpLedger as DumpAsset;
+    use damn_vuln_blockchain::chain::DumpLedger as DumpChain;
+    let mode = data.mode_addr.send(GetMode).await.unwrap();
+    let assets = data.asset_addr.send(DumpAsset).await.unwrap();
+    let chain = data.chain_addr.send(DumpChain).await.unwrap();
+    let mut status_builder = StatusBuilder::default();
+    status_builder
+        .asset(assets)
+        .chain(chain)
+        .tampered_chain(None)
+        .tampered_assets(None)
+        .peer_id(data.peer_id.clone());
+    if mode == Mode::Attacker(true) || mode == Mode::Attacker(false) {
+        let tampered_assets = data.tampered_asset_addr.send(DumpAsset).await.unwrap();
+        let tampered_chain = data.tampered_chain_addr.send(DumpChain).await.unwrap();
+
+        status_builder
+            .tampered_assets(Some(tampered_assets))
+            .tampered_chain(Some(tampered_chain));
+    }
+
+    let status = status_builder.build().unwrap();
+    HttpResponse::Ok().json(status)
 }
 
 pub fn services(cfg: &mut ServiceConfig) {
@@ -235,6 +324,8 @@ pub fn services(cfg: &mut ServiceConfig) {
     cfg.service(chain_dump);
     cfg.service(validate);
     cfg.service(add_block);
+    cfg.service(fork);
+    cfg.service(state);
 }
 
 #[cfg(test)]

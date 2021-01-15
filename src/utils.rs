@@ -128,7 +128,8 @@ async fn from_stake_to_validator(config: &Config, all_stakes: Vec<(String, Stake
 /// check ownsership utility
 pub async fn check_ownership(config: &Config, owner: &str, asset_id: &str) -> bool {
     let asset_info = config
-        .asset_addr
+        .get_asset_ledger()
+        .await
         .send(GetAssetInfo(asset_id.into()))
         .await
         .unwrap()
@@ -149,7 +150,12 @@ pub async fn check_ownership(config: &Config, owner: &str, asset_id: &str) -> bo
 /// get next block ID utility
 pub async fn get_next_block_id(config: &Config) -> usize {
     use crate::chain::GetLastBlock;
-    let current_block = config.chain_addr.send(GetLastBlock).await.unwrap();
+    let current_block = config
+        .get_chain_addr()
+        .await
+        .send(GetLastBlock)
+        .await
+        .unwrap();
 
     if current_block.get_serial_no().unwrap() == 0 {
         config.init_network_size + 1
@@ -179,7 +185,12 @@ pub async fn add_block_runner(config: &Config, client: &Client, block: &Block) {
         .new_owner(block.get_rx().unwrap().into())
         .build()
         .unwrap();
-    config.asset_addr.send(change_ownsership_msg).await.unwrap();
+    config
+        .get_asset_ledger()
+        .await
+        .send(change_ownsership_msg)
+        .await
+        .unwrap();
 
     // changing coinage of the asset transacted
     config.debug(&format!(
@@ -191,7 +202,12 @@ pub async fn add_block_runner(config: &Config, client: &Client, block: &Block) {
         .asset_id(block.get_asset_id().unwrap().into())
         .build()
         .unwrap();
-    config.asset_addr.send(change_tx_msg).await.unwrap();
+    config
+        .get_asset_ledger()
+        .await
+        .send(change_tx_msg)
+        .await
+        .unwrap();
 
     // changing coinage of the assets staked by the validator
     let client_payload = ClientGetStake {
@@ -207,13 +223,19 @@ pub async fn add_block_runner(config: &Config, client: &Client, block: &Block) {
             .asset_id(asset_id.into())
             .build()
             .unwrap();
-        config.asset_addr.send(change_tx_msg).await.unwrap();
+        config
+            .get_asset_ledger()
+            .await
+            .send(change_tx_msg)
+            .await
+            .unwrap();
     }
 
     // adding block to chain
     config.info(&format!("Adding block {} to chain", block.get_hash()));
     config
-        .chain_addr
+        .get_chain_addr()
+        .await
         .send(AddBlock(block.to_owned(), config.init_network_size))
         .await
         .unwrap()
@@ -222,17 +244,34 @@ pub async fn add_block_runner(config: &Config, client: &Client, block: &Block) {
 
 /// broadcast block to all peers
 pub async fn broadcast_block(config: &Config, client: &Client, block: &Block) {
+    use crate::config::{GetMode, Mode};
     use crate::discovery::DumpPeer;
     let peers = config.network_addr.send(DumpPeer).await.unwrap();
     for peer in peers.iter() {
+        config.debug(&format!("cheking broadcast. peer ID {}", &peer.id));
         if peer.id != config.peer_id {
-            config.debug(&format!(
-                "Broadcasting block {} to peer {}",
-                &block.get_hash(),
-                &peer.id
-            ));
+            if config.mode_addr.send(GetMode).await.unwrap() == Mode::Attacker(true) {
+                if block.get_rx().unwrap() == "victim.batsense.net"
+                    && peer.id == "victim.batsense.net"
+                {
+                    config.debug("Sending malicious block to victim.batsense.net");
+                    config.debug(&format!(
+                        "Broadcasting block {} to peer {}",
+                        &block.get_hash(),
+                        &peer.id
+                    ));
 
-            client.send_block_to_peer(&config, &peer, &block).await;
+                    return client.send_block_to_peer(&config, &peer, &block).await;
+                }
+            } else {
+                config.debug(&format!(
+                    "Broadcasting block {} to peer {}",
+                    &block.get_hash(),
+                    &peer.id
+                ));
+
+                client.send_block_to_peer(&config, &peer, &block).await;
+            }
         }
     }
 }

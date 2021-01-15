@@ -138,7 +138,11 @@ impl Client {
                 let peers: Result<Vec<Asset>, _> = val.json().await;
                 if let Ok(val) = peers {
                     config.debug("Asset deserialization success");
-                    config.asset_addr.send(ReplaceLedger(val)).await;
+                    config
+                        .get_asset_ledger()
+                        .await
+                        .send(ReplaceLedger(val))
+                        .await;
                     break;
                 }
             }
@@ -202,7 +206,7 @@ impl Client {
         let addr = Client::make_uri(&config.auditor_node, PEER_DISCOVER_ALL);
         loop {
             if let Ok(mut val) = self.client.get(&addr).send().await {
-                config.debug("Peer discovery request success");
+                //                config.debug("Peer discovery request success");
                 let peers: Result<Vec<Peer>, _> = val.json().await;
                 if let Ok(val) = peers {
                     return val;
@@ -223,7 +227,11 @@ impl Client {
                 let peers: Result<Vec<Asset>, _> = val.json().await;
                 if let Ok(val) = peers {
                     config.debug("Asset deserialization success");
-                    config.asset_addr.send(ReplaceLedger(val)).await;
+                    config
+                        .get_asset_ledger()
+                        .await
+                        .send(ReplaceLedger(val))
+                        .await;
                     break;
                 }
             }

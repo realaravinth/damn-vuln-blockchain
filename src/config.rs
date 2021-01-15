@@ -30,7 +30,8 @@ pub struct Config {
     pub auditor_node: String,
     pub asset_addr: Addr<AssetLedger>,
     pub chain_addr: Addr<Chain>,
-    pub tampered_chain_addr: Option<Addr<Chain>>,
+    pub tampered_chain_addr: Addr<Chain>,
+    pub tampered_asset_addr: Addr<AssetLedger>,
     pub network_addr: Addr<Network>,
     pub init_network_size: usize,
 }
@@ -58,10 +59,41 @@ impl Config {
         Config::cli()
     }
 
+    pub async fn get_asset_ledger(&self) -> Addr<AssetLedger> {
+        if self.mode_addr.send(GetMode).await.unwrap() == Mode::Attacker(true) {
+            self.tampered_asset_addr.clone()
+        } else {
+            self.asset_addr.clone()
+        }
+    }
+
+    pub async fn get_chain_addr(&self) -> Addr<Chain> {
+        if self.mode_addr.send(GetMode).await.unwrap() == Mode::Attacker(true) {
+            self.tampered_chain_addr.clone()
+        } else {
+            self.chain_addr.clone()
+        }
+    }
+
     /// debug logging wrapper
     #[cfg(not(tarpaulin_include))]
     pub fn debug(&self, msg: &str) {
         debug!("[{}]: {}", &self.peer_id, msg);
+    }
+
+    pub fn fork_chain(&self) -> Self {
+        Config {
+            peer_id: self.peer_id.clone(),
+            mode_addr: self.mode_addr.clone(),
+            asset_addr: self.tampered_asset_addr.clone(),
+            tampered_chain_addr: self.tampered_chain_addr.clone(),
+            tampered_asset_addr: self.tampered_asset_addr.clone(),
+            chain_addr: self.tampered_chain_addr.clone(),
+            network_addr: self.network_addr.clone(),
+            init_network_size: self.init_network_size,
+            auditor_node: self.auditor_node.clone(),
+            public_ip: self.public_ip.clone(),
+        }
     }
 
     /// info logging wrapper
@@ -142,8 +174,10 @@ impl Config {
         let mode;
         let mut asset_leger = AssetLedger::new(&peer_id);
         let chain_addr = Chain::new("Legit").start();
-        let tampered_chain_addr = None;
+        let tampered_chain_addr = Chain::new("Tampered").start();
         let network_addr = Network::default().start();
+
+        let tampered_asset_addr = AssetLedger::new("tampered_asset_addr").start();
 
         let init_network_size: usize = matches
             .value_of("network_size")
@@ -186,6 +220,7 @@ impl Config {
             //       tampered_asset_addr,
             asset_addr: asset_leger.start(),
             tampered_chain_addr,
+            tampered_asset_addr,
             chain_addr,
             network_addr,
             init_network_size,
@@ -229,9 +264,12 @@ impl Config {
 
                 let peers_upadate = client.peer_dump(&self).await;
                 if peers.len() < peers_upadate.len() {
+                    self.debug("Refreshing peer ledger");
                     self.network_addr
                         .send(ReplacePeerLedger(peers_upadate))
-                        .await;
+                        .await
+                        .unwrap();
+                    self.debug("Refreshing asset ledger");
                     client.get_peer_assets(&self, peer).await;
                 }
             }
