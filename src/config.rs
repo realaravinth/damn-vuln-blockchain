@@ -212,7 +212,7 @@ impl Config {
         use crate::discovery::{DumpPeer, ReplacePeerLedger};
         use actix::clock::delay_for;
         use std::time::Duration;
-        let duration = Duration::from_millis(5000);
+        let duration = Duration::from_millis(1000);
 
         loop {
             let client = Client::default();

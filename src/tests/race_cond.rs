@@ -31,6 +31,7 @@ mod tests {
         use damn_vuln_blockchain::discovery::{DumpPeer, ReplacePeerLedger};
         use std::time::Duration;
         let duration = Duration::from_millis(500);
+        let mut count = 10;
 
         loop {
             let client = Client::default();
@@ -54,11 +55,21 @@ mod tests {
                     client.get_peer_assets(&config, peer).await;
                 }
             }
+            count -= 1;
+            if count == 0 {
+                break;
+            }
         }
     }
 
     #[actix_rt::test]
     pub async fn race_cond_test() {
+        use actix::clock::delay_for;
+        use std::time::Duration;
+        let duration = Duration::from_millis(300);
+
+        let a = delay_for(duration).await;
+
         let config = generate_test_config();
         actix::spawn(sync(config.clone()));
 
@@ -66,8 +77,6 @@ mod tests {
         non_register_bootstrap(&config, &client).await;
 
         tx_works(&config, &client).await;
-        use actix::clock::delay_for;
-        use std::time::Duration;
         let duration = Duration::from_millis(5000);
         delay_for(duration).await;
 
