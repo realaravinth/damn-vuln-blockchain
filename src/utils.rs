@@ -19,7 +19,7 @@ use sha2::{Digest, Sha256};
 
 use crate::asset::{Asset, AssetLedger, GetAssetInfo, Stake};
 use crate::block::Block;
-use crate::payload::Peer;
+use crate::payload::{Peer, Status};
 use crate::{Client, Config};
 
 /// helper function for generating sha256 hashes
@@ -274,6 +274,21 @@ pub async fn broadcast_block(config: &Config, client: &Client, block: &Block) {
             }
         }
     }
+}
+
+/// get state from all peers in network
+pub async fn state(config: &Config, client: &Client) -> Vec<Status> {
+    use crate::discovery::DumpPeer;
+    let mut state: Vec<Status> = Vec::new();
+    let peers = config.network_addr.send(DumpPeer).await.unwrap();
+
+    for peer in peers.iter() {
+        config.debug(&format!("Requesting state from peer {}", &peer.id));
+
+        state.push(client.get_state(&config, &peer).await);
+    }
+
+    state
 }
 
 #[cfg(test)]

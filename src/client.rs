@@ -23,7 +23,7 @@ use crate::asset::{Asset, ReplaceLedger, Stake};
 use crate::block::Block;
 use crate::config::Config;
 use crate::discovery::AddPeer;
-use crate::payload::{Peer, Tx, ValidateTx};
+use crate::payload::{Peer, Status, Tx, ValidateTx};
 use crate::utils::*;
 //use crate::logs::SellAsset;
 
@@ -39,6 +39,7 @@ const SET_ATTACK: &str = "/attack";
 const GET_CHAIN: &str = "/chain/all";
 const ADD_BLOCK: &str = "/chain/add";
 const SEND_VALIDATOR_TX: &str = "/block/validate";
+const STATE: &str = "/state";
 
 /// Client wrapper for p2p communication
 #[derive(Clone, Default)]
@@ -251,6 +252,20 @@ impl Client {
                 .await
             {
                 break;
+            }
+        }
+    }
+
+    /// get state of a peer
+    pub async fn get_state(&self, config: &Config, peer: &Peer) -> Status {
+        let peer_addr = get_peer(&config, &peer.id).await;
+        let addr = Client::make_uri(&peer_addr.ip, STATE);
+        loop {
+            if let Ok(mut val) = self.client.get(&addr).send().await {
+                let peers: Result<Status, _> = val.json().await;
+                if let Ok(val) = peers {
+                    return val;
+                }
             }
         }
     }

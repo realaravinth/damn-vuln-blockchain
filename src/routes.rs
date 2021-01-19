@@ -240,6 +240,13 @@ async fn add_block(
     HttpResponse::Ok()
 }
 
+#[get("/worldview")]
+async fn worldview(client: web::Data<Client>, data: web::Data<Config>) -> impl Responder {
+    use damn_vuln_blockchain::utils::*;
+    let state = state(&data, &client).await;
+    HttpResponse::Ok().json(state)
+}
+
 // validate and create block
 #[post("/block/validate")]
 async fn validate(
@@ -314,6 +321,12 @@ async fn state(data: web::Data<Config>) -> impl Responder {
     HttpResponse::Ok().json(status)
 }
 
+#[get("/")]
+async fn auditor() -> impl Responder {
+    const INDEX: &str = include_str!("../frontend/index.html");
+    HttpResponse::Ok().content_type("text/html").body(INDEX)
+}
+
 pub fn services(cfg: &mut ServiceConfig) {
     cfg.service(peer_enroll);
     cfg.service(peer_dump);
@@ -326,6 +339,8 @@ pub fn services(cfg: &mut ServiceConfig) {
     cfg.service(add_block);
     cfg.service(fork);
     cfg.service(state);
+    cfg.service(worldview);
+    cfg.service(auditor);
 }
 
 #[cfg(test)]

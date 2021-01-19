@@ -1,7 +1,7 @@
 set -e
 
 launch_auditor() {
-	bash -c "exec -a auditor ./target/debug/dwb -m auditor -s 3 -n auditor.batsense.net -i localhost:7000 -a localhost:7000"&
+	bash -c "exec -a auditor ./target/debug/dwb -m auditor -s 3 -n auditor.batsense.net -i 0.0.0.0:7000 -a localhost:7000"&
 }
 
 launch_normal() {
@@ -17,10 +17,9 @@ launch_victim() {
 }
 
 launch_release() {
-	bash -c "exec -a auditor ./target/release/dwb -m auditor -s 3 -n auditor.batsense.net -i localhost:7000 -a localhost:7000"&
 	bash -c "exec -a attacker ./target/release/dwb -m attacker -s 3 -n attacker.batsense.net -i localhost:7001 -a localhost:7000"&
 	bash -c "exec -a victim ./target/release/dwb -m victim -s 3 -n victim.batsense.net -i localhost:7002 -a localhost:7000"&
-	#bash -c "exec -a normal ./target/debug/dwb -m normal -s 3 -n normal.batsense.net -i localhost:7003 -a localhost:7000"&
+	bash -c "exec -a normal ./target/release/dwb -m normal -s 3 -n normal.batsense.net -i localhost:7003 -a localhost:7000"&
 }
 
 kill_auditor() {
@@ -86,7 +85,7 @@ then
 		launch_test_net
 	elif [ $2 == 'release' ]
 	then
-		launch_production
+		launch_release
 	elif [ $2 == 'auditor' ]
 	then
 		launch_auditor

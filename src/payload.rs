@@ -67,9 +67,9 @@ pub struct ValidateTx {
 /// Transaction payload
 #[derive(Deserialize, Builder, Serialize)]
 pub struct Status {
+    pub peer_id: String,
     pub asset: Vec<Asset>,
     pub tampered_assets: Option<Vec<Asset>>,
     pub chain: Vec<Block>,
     pub tampered_chain: Option<Vec<Block>>,
-    pub peer_id: String,
 }
