@@ -128,7 +128,6 @@
     const updateState = () => {
       contentContainer.innerHTML = '';
       getState().then(json => {
-
         json.map(state => {
           createPeerName(state.peer_id, contentContainer);
           let section = document.createElement('div');
@@ -155,7 +154,7 @@
     };
 
     updateState();
-     window.setInterval(() => updateState(), 15000);
+    window.setInterval(() => updateState(), 15000);
   </script>
   <style>
     * {

@@ -14,7 +14,7 @@
 This is a test blockchain that I build for fun and as the name
 suggests, **it is bloody vulnerable.**
 
-### How to build
+## How to build
 
 - Install Cargo using [rustup](https://rustup.rs/) with:
 
@@ -34,7 +34,7 @@ $ git clone https://github.com/realaravinth/damn-vuln-blockchain
 $ cd damn-vuln-blockchain && cargo build
 ```
 
-### Usage:
+## Usage:
 
 `Damn Vulnerable Blockchain` comes with a peer implementation called
 `dwb`. `dwb` supports three modes:
@@ -46,8 +46,7 @@ $ cd damn-vuln-blockchain && cargo build
 | Victim   | This peer will be configured to take itself down when an attack command is issued.           |
 | Normal   | No special abilities, just an other node in the network                                      |
 
-
-#### `dwb` usage:
+### `dwb` usage:
 
 ```
 Damn Vulnerable Blockchain 0.1
@@ -73,21 +72,92 @@ OPTIONS:
     -i, --public-ip <public_ip>          set public IP
 ```
 
-#### Spinning up a cluster:
+### Spinning up a cluster:
 
 The easiest way to spin up a cluster locally is using `./network.sh`.
 
 ```
 USAGE:
+USAGE:
   ./network.sh
-  launch		 launches network
-		release  launches network with release binary
-  kill			 kills network
+  launch		 launches test network
+		release  launches network in production setup(seperate auditor launch)
+		auditor  launches auditor
+  kill			 kills test network
+		release  kills network in production setup(seperate auditor launch)
+		auditor  kills auditor
 ```
 
-### Attack Scenario:
+### Web interface:
 
-TODO
+A read-only web interface is available at the root of every peer. It is
+capable of aggregating state from all peers in network and displaying it.
+
+<div align="center" >
+<img 
+	src="assets/auditor-view.png"
+	alt="dwb-network-topology" 
+	height="440" />
+</div>
+
+## Transaction Wrokflow:
+
+<div align="center" >
+<img 
+	src="assets/tx-workflow.png"
+	alt="dwb-network-topology" 
+/>
+</div>
+
+## Attack Scenario:
+
+### Network Topology
+
+<div align="center" >
+<img 
+	src="assets/attack-network-topology.png"
+	alt="dwb-network-topology" 
+	width="480" height="440" />
+</div>
+
+1. Fork chain on `attacker`:
+   This makes a copy of `AssetLedger` and `Chain` state which can be
+   exposed to `victim` later in the attack
+
+```bash
+$ curl -X POST localhost:7001/fork
+```
+
+2. Set attack on `victim`:
+   This simulates DoS on the victim and effectively blacking itself out.
+
+```bash
+$ curl -X POST localhost:7002
+```
+
+3. Sell asset from `attacker` to `normal`:
+
+```bash
+$ curl -X POST 'localhost:7001/assets/sell' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "asset_id": "4D2DF03943EA557997577CD2F52AB707A10D75D59A2B5C3682CDFA9816CD120F",
+    "buyer_peer_id": "normal.batsense.net" }'
+# replace peer ID and asset ID
+```
+
+4. Set attack on `attacker`
+
+5. Sell same asset from step 3 to `victim`:
+
+```bash
+$ curl -X POST 'localhost:7001/assets/sell' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "asset_id": "4D2DF03943EA557997577CD2F52AB707A10D75D59A2B5C3682CDFA9816CD120F",
+    "buyer_peer_id": "victim.batsense.net" }'
+# replace peer ID and asset ID
+```
 
 ### Credits:
 
