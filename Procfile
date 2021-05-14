@@ -1,1 +1,1 @@
-web: ./target/release/worldview $PORT STATIC=$(pwd)/build
+web: ./target/release/wv $PORT STATIC=$(pwd)/build
