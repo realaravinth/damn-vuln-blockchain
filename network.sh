@@ -1,7 +1,7 @@
 set -e
 
 launch_auditor() {
-	bash -c "exec -a auditor ./target/debug/dwb -m auditor -s 3 -n auditor.batsense.net -i 0.0.0.0:7000 -a localhost:7000"&
+	bash -c "exec -a auditor ./target/release/dwb -m auditor -s 3 -n auditor.batsense.net -i 0.0.0.0:7000 -a localhost:7000"&
 }
 
 launch_normal() {

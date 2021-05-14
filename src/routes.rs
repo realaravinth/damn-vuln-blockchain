@@ -247,6 +247,13 @@ async fn worldview(client: web::Data<Client>, data: web::Data<Config>) -> impl R
     HttpResponse::Ok().json(state)
 }
 
+#[post("/worldview/upload")]
+async fn upload_world_view(client: web::Data<Client>, data: web::Data<Config>) -> impl Responder {
+    use damn_vuln_blockchain::utils::*;
+    upload_to_server(&data, &client).await;
+    HttpResponse::Ok()
+}
+
 // validate and create block
 #[post("/block/validate")]
 async fn validate(
@@ -340,6 +347,7 @@ pub fn services(cfg: &mut ServiceConfig) {
     cfg.service(fork);
     cfg.service(state);
     cfg.service(worldview);
+    cfg.service(upload_world_view);
     cfg.service(auditor);
 }
 

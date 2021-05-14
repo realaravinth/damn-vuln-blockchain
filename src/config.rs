@@ -34,6 +34,7 @@ pub struct Config {
     pub tampered_asset_addr: Addr<AssetLedger>,
     pub network_addr: Addr<Network>,
     pub init_network_size: usize,
+    pub remote_server: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -93,6 +94,7 @@ impl Config {
             init_network_size: self.init_network_size,
             auditor_node: self.auditor_node.clone(),
             public_ip: self.public_ip.clone(),
+            remote_server: self.remote_server.clone(),
         }
     }
 
@@ -166,6 +168,13 @@ impl Config {
                     .required(true)
                     .takes_value(true),
             )
+            .arg(
+                Arg::with_name("remote_server")
+                    .help("address of remote worldview node")
+                    .short("-r")
+                    .long("--remote-server")
+                    .takes_value(true),
+            )
             .get_matches();
 
         let peer_id = matches.value_of("peer_id").expect("Set peer ID");
@@ -184,6 +193,8 @@ impl Config {
             .expect("set network_size")
             .parse()
             .unwrap();
+
+        let remote_server: Option<String> = matches.value_of("network_size").map(String::from);
 
         let auditor_node = matches
             .value_of("auditor")
@@ -226,6 +237,7 @@ impl Config {
             init_network_size,
             auditor_node: auditor_node.into(),
             public_ip: public_ip.into(),
+            remote_server,
         }
     }
 }

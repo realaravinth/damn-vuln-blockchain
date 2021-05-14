@@ -34,6 +34,7 @@ pub fn generate_test_config() -> Config {
 
     let init_network_size: usize = 3;
     let auditor_node = "localhost:7000".into();
+    let remote_server = Some("localhost:7000".into());
 
     Config {
         peer_id,
@@ -46,6 +47,7 @@ pub fn generate_test_config() -> Config {
         init_network_size,
         auditor_node,
         public_ip,
+        remote_server,
     }
 }
 

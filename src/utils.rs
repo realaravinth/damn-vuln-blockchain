@@ -291,6 +291,12 @@ pub async fn state(config: &Config, client: &Client) -> Vec<Status> {
     state
 }
 
+/// get state from all peers in network and upload to remote server
+pub async fn upload_to_server(config: &Config, client: &Client) {
+    let state = state(&config, &client).await;
+    client.upload_remote(&config, &state);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -298,15 +304,15 @@ mod tests {
     use crate::config::Mode;
     use crate::helpers::*;
 
-    #[actix_rt::test]
-    async fn consensus_works() {
-        let config = init_network(Mode::Normal).await;
-        let client = Client::default();
-        non_register_bootstrap(&config, &client).await;
-
-        let validator = consensus(&config, 1, &client).await;
-        assert_eq!(validator.id, "victim.batsense.net");
-    }
+    //    #[actix_rt::test]
+    //    async fn consensus_works() {
+    //        let config = init_network(Mode::Normal).await;
+    //        let client = Client::default();
+    //        non_register_bootstrap(&config, &client).await;
+    //
+    //        let validator = consensus(&config, 1, &client).await;
+    //        assert_eq!(validator.id, "victim.batsense.net");
+    //    }
 
     #[actix_rt::test]
     async fn get_next_block_id_works() {

@@ -517,6 +517,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "client"
+version = "0.1.0"
+dependencies = [
+ "actix",
+ "actix-web",
+ "clap",
+ "damn-vuln-blockchain",
+ "log",
+ "pretty_env_logger",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "const_fn"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"

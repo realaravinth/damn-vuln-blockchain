@@ -30,16 +30,16 @@ use crate::utils::*;
 // NOTE these URLs are subject to change
 // if tests are failing, come check the URLs
 // here
-const PEER_ENROLL: &str = "/peers/enroll";
-const PEER_DISCOVER_ALL: &str = "/peers/all";
-const GET_ALL_ASSETS: &str = "/assets/all";
-const SELL_ASSET: &str = "/assets/sell";
-const GET_STAKE: &str = "/stake";
-const SET_ATTACK: &str = "/attack";
-const GET_CHAIN: &str = "/chain/all";
-const ADD_BLOCK: &str = "/chain/add";
-const SEND_VALIDATOR_TX: &str = "/block/validate";
-const STATE: &str = "/state";
+pub const PEER_ENROLL: &str = "/peers/enroll";
+pub const PEER_DISCOVER_ALL: &str = "/peers/all";
+pub const GET_ALL_ASSETS: &str = "/assets/all";
+pub const SELL_ASSET: &str = "/assets/sell";
+pub const GET_STAKE: &str = "/stake";
+pub const SET_ATTACK: &str = "/attack";
+pub const GET_CHAIN: &str = "/chain/all";
+pub const ADD_BLOCK: &str = "/chain/add";
+pub const SEND_VALIDATOR_TX: &str = "/block/validate";
+pub const STATE: &str = "/state";
 
 /// Client wrapper for p2p communication
 #[derive(Clone, Default)]
@@ -266,6 +266,20 @@ impl Client {
                 if let Ok(val) = peers {
                     return val;
                 }
+            }
+        }
+    }
+
+    /// upload blockchian state to remote server
+    pub async fn upload_remote(&self, config: &Config, state: &Vec<Status>) {
+        loop {
+            if let Ok(_) = self
+                .client
+                .post(config.remote_server.as_ref().unwrap())
+                .send_json(&serde_json::to_string(&state).unwrap())
+                .await
+            {
+                return;
             }
         }
     }
