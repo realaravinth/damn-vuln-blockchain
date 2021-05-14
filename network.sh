@@ -1,25 +1,27 @@
 set -e
 
+readonly REMOTE_PATH="http://localhost:3000/worldview"
+
 launch_auditor() {
-	bash -c "exec -a auditor ./target/release/dwb -m auditor -s 3 -n auditor.batsense.net -i 0.0.0.0:7000 -a localhost:7000"&
+	bash -c "exec -a auditor ./target/release/dwb -m auditor -s 3 -n auditor.batsense.net -i 0.0.0.0:7000 -a localhost:7000 --remote-server $REMOTE_PATH"&
 }
 
 launch_normal() {
-	bash -c "exec -a normal ./target/debug/dwb -m normal -s 3 -n normal.batsense.net -i localhost:7003 -a localhost:7000"&
+	bash -c "exec -a normal ./target/debug/dwb -m normal -s 3 -n normal.batsense.net -i localhost:7003 -a localhost:7000  --remote-server $REMOTE_PATH"&
 }
 
 launch_attacker() {
-	bash -c "exec -a attacker ./target/debug/dwb -m attacker -s 3 -n attacker.batsense.net -i localhost:7001 -a localhost:7000"&
+	bash -c "exec -a attacker ./target/debug/dwb -m attacker -s 3 -n attacker.batsense.net -i localhost:7001 -a localhost:7000  --remote-server $REMOTE_PATH"&
 }
 
 launch_victim() {
-	bash -c "exec -a victim ./target/debug/dwb -m victim -s 3 -n victim.batsense.net -i localhost:7002 -a localhost:7000"&
+	bash -c "exec -a victim ./target/debug/dwb -m victim -s 3 -n victim.batsense.net -i localhost:7002 -a localhost:7000  --remote-server $REMOTE_PATH"&
 }
 
 launch_release() {
-	bash -c "exec -a attacker ./target/release/dwb -m attacker -s 3 -n attacker.batsense.net -i localhost:7001 -a localhost:7000"&
-	bash -c "exec -a victim ./target/release/dwb -m victim -s 3 -n victim.batsense.net -i localhost:7002 -a localhost:7000"&
-	bash -c "exec -a normal ./target/release/dwb -m normal -s 3 -n normal.batsense.net -i localhost:7003 -a localhost:7000"&
+	bash -c "exec -a victim ./target/release/dwb -m victim -s 3 -n victim.batsense.net -i localhost:7002 -a localhost:7000  --remote-server $REMOTE_PATH"&
+	bash -c "exec -a attacker ./target/release/dwb -m attacker -s 3 -n attacker.batsense.net -i localhost:7001 -a localhost:7000  --remote-server $REMOTE_PATH"&
+	bash -c "exec -a normal ./target/release/dwb -m normal -s 3 -n normal.batsense.net -i localhost:7003 -a localhost:7000 --remote-server $REMOTE_PATH"&
 }
 
 kill_auditor() {

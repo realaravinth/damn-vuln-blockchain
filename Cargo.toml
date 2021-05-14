@@ -12,7 +12,7 @@ name = "dwb"
 path = "src/main.rs"
 
 [workspace]
-members = [ ".", "client" ]
+members = [ ".", "worldview" ]
 
 
 [dependencies]

@@ -250,6 +250,7 @@ async fn worldview(client: web::Data<Client>, data: web::Data<Config>) -> impl R
 #[post("/worldview/upload")]
 async fn upload_world_view(client: web::Data<Client>, data: web::Data<Config>) -> impl Responder {
     use damn_vuln_blockchain::utils::*;
+    log::info!("Uploading to {:?}", data.remote_server);
     upload_to_server(&data, &client).await;
     HttpResponse::Ok()
 }

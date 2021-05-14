@@ -194,7 +194,7 @@ impl Config {
             .parse()
             .unwrap();
 
-        let remote_server: Option<String> = matches.value_of("network_size").map(String::from);
+        let remote_server: Option<String> = matches.value_of("remote_server").map(String::from);
 
         let auditor_node = matches
             .value_of("auditor")

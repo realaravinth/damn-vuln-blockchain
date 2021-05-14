@@ -294,7 +294,7 @@ pub async fn state(config: &Config, client: &Client) -> Vec<Status> {
 /// get state from all peers in network and upload to remote server
 pub async fn upload_to_server(config: &Config, client: &Client) {
     let state = state(&config, &client).await;
-    client.upload_remote(&config, &state);
+    client.upload_remote(&config, &state).await;
 }
 
 #[cfg(test)]

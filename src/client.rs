@@ -276,11 +276,12 @@ impl Client {
             if let Ok(_) = self
                 .client
                 .post(config.remote_server.as_ref().unwrap())
-                .send_json(&serde_json::to_string(&state).unwrap())
+                .send_json(&state)
                 .await
             {
                 return;
             }
+            log::info!("Uploading to {:?}", config.remote_server);
         }
     }
 }
